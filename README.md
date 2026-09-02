@@ -12,14 +12,6 @@
 
 <br/><br/>
 
-```
-██████╗  █████╗ ██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗████████╗
-██╔══██╗██╔══██╗██║ ██╔╝██╔════╝██║  ██║██╔══██╗████╗  ██║██╔════╝╚══██╔══╝
-██████╔╝███████║█████╔╝ ███████╗███████║███████║██╔██╗ ██║█████╗     ██║   
-██╔══██╗██╔══██║██╔═██╗ ╚════██║██╔══██║██╔══██║██║╚██╗██║██╔══╝     ██║   
-██║  ██║██║  ██║██║  ██╗███████║██║  ██║██║  ██║██║ ╚████║███████╗   ██║   
-╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   
-```
 
 ### 🛡️ **Protection. Not Surveillance.**
 
@@ -336,43 +328,6 @@ Sent automatically by RakshaNet SilentShield — AI Safety Network.
   4. 📡 Peer network broadcast — all nearby RakshaNet users within 3km notified
   5. 🔔 Toast alert shown to peer helpers asking "Someone needs help — can you assist?"
 
-**Critical SMS Message:**
-```
-🆘 CRITICAL EMERGENCY — RakshaNet SilentShield
-[User's Full Name] is in a danger situation and needs URGENT help immediately!
-This is a critical alert. Please reach them RIGHT NOW or call emergency services.
-📍 Last known location: [Address]
-🗺️ Navigate: https://maps.google.com/?q=[lat],[lng]
-Emergency services have been automatically notified.
-Sent by RakshaNet SilentShield — AI Safety Network.
-```
-
----
-
-## 📊 Raksha Risk Score Quick Reference
-
-```
-  SCORE  │  LEVEL          │  COLOR    │  ACTION
-─────────┼─────────────────┼───────────┼─────────────────────────────────────
-  0      │  SAFE           │  🟢 Green │  Monitor only
-  1–29   │  SUSPICIOUS     │  🟡 Amber │  Widget warning — no alert
-  30–54  │  HIGH RISK      │  🟠 Orange│  Silent check-in modal (60s timer)
-  55–74  │  CONFIRMED RISK │  🔴 Red   │  Auto-SOS + Trusted contact SMS
-  75–87  │  CRITICAL       │  ⚫ Dark  │  Police PCR + All contacts + Peers
-─────────┴─────────────────┴───────────┴─────────────────────────────────────
-
-  FACTOR SCORING
-  ──────────────────────────────────────────────────────
-  Audio Anomaly (scream/distress detected)  →  +35 pts
-  Sudden Motion (jerk/struggle detected)    →  +20 pts
-  Route Risk (off-route / unknown area)     →  +0 to +18 pts
-  Time & Context (night = 10pm–4am)         →  +0 | +7 | +14 pts
-  User Manual SOS Trigger                   →  → 87 (instant CRITICAL)
-  ──────────────────────────────────────────────────────
-  MAX TOTAL SCORE                           =  87 pts
-```
-
----
 
 ## 🛠 Features Deep-Dive
 
@@ -461,50 +416,9 @@ Sent by RakshaNet SilentShield — AI Safety Network.
     │ /api/vault          │  │ Auth (Email/OAuth)       │  │                     │
     └────────────────────┘  └────────────────────────┘  └────────────────────┘
 ```
-
-### 🔄 Real-Time Signal Flow
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        REAL-TIME SIGNAL FLOW (every 2s)                     │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-   [Mic]──────► AudioAnomalyAnalyzer ──────► audioScore (0 | 35)
-                   FFT Analysis / Scream & high-freq detection
-
-   [Accel]────► MotionAnomalyAnalyzer ────► motionScore (0 | 20)
-                   Jerk detection / G-force threshold                     computeRakshaRiskScore()
-   [GPS]──────► LocationContext ─────────► routeRiskScore (0–18)   ──────────────► TOTAL ──► LEVEL
-                   Haversine math / SafeZone check
-
-   [Clock]────► computeTimeContext() ────► timeContextScore (0|7|14)
-                   Hour 22-04: 14pts · Hour 20-06: 7pts · Daytime: 0pts
-
-   ─────────────────────────────────────────────────────────────────────────►
-   TOTAL SCORE → LEVEL RESOLVER → ACTION ENGINE → UI + NOTIFICATIONS + SMS
-```
-
 ---
 
 ## 🤝 Community Safety Network
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    PEER ALERT BROADCAST SYSTEM                       │
-│                                                                     │
-│  When Level 4 CRITICAL triggers:                                    │
-│                                                                     │
-│   [User in Distress]                                                │
-│         │ POST /api/peer-alert (radius: 3km)                       │
-│         ├──► [Helper A, 0.4km] ──► Realtime toast: "Help needed"  │
-│         ├──► [Helper B, 1.2km] ──► Realtime toast: "Help needed"  │
-│         └──► [Helper C, 2.8km] ──► Realtime toast: "Help needed"  │
-│                                                                     │
-│   Helpers see: Distance, message, "View & Respond" CTA             │
-│   Helper data: opt-in `helper_availability` flag in profile        │
-│   Powered by: Supabase Realtime postgres_changes subscription      │
-└─────────────────────────────────────────────────────────────────────┘
-```
 
 ---
 
@@ -518,84 +432,7 @@ RakshaNet abandons boring layouts for a cutting-edge **Cyber-Security Command Ce
 - **Micro-Animations:** Driven by `framer-motion`, every number tick, chart load, and action pulses and fluidly enters the frame ensuring the interface feels "alive".
 - **Dynamic Context Glows:** The UI changes global accent colors automatically based on risk level. Ambient shadows pulse red during Level 4 Crits.
 
-```
-┌──────────────────────────────────────────────────────┐
-│  🛡️ RAKSHANET COMMAND CENTER          [Live Demo]    │
-│  ─────────────────────────────────────────────────── │
-│  ┌─────────────────────────────────────────────────┐ │
-│  │  RAKSHA RISK SCORE              Score: 0 / 87   │ │
-│  │  ████████████░░░░░░░░  SAFE                     │ │
-│  │  Audio ──── 0/35 ░░░░░░░░░░░░░                  │ │
-│  │  Motion ─── 0/20 ░░░░░░░░░░░░░                  │ │
-│  │  Route ──── 0/18 ░░░░░░░░░░░░░                  │ │
-│  │  Context ── 0/14 ░░░░░░░░░░░░░                  │ │
-│  └─────────────────────────────────────────────────┘ │
-│  📍 Current Location: India Gate, New Delhi          │
-│  🕐 Time: 11:32 PM  ⚠️ Night context active          │
-│  [🎙️ Start Audio]  [🆘 Emergency SOS]  [🗺️ Route]   │
-└──────────────────────────────────────────────────────┘
-```
-
-> **"Because safety shouldn't feel obsolete. It should feel like state-of-the-art protection."**
-
 ---
-
-## 📁 Project Structure
-
-```
-rakshanet/
-├── app/
-│   ├── api/
-│   │   ├── chat/           # AI companion API (context-aware)
-│   │   ├── geocode/        # Address-to-coords + reverse geocode
-│   │   ├── peer-alert/     # Community broadcast API
-│   │   ├── trusted-alert/  # L3/L4 SMS + WhatsApp alert API
-│   │   └── vault/          # Evidence vault CRUD
-│   ├── auth/               # Login / sign-up pages (Supabase Auth)
-│   ├── components/
-│   │   ├── AmbientLayer.tsx        # Atmospheric background FX
-│   │   ├── ChatWidget.tsx          # AI safety companion chat
-│   │   ├── CheckInModal.tsx        # Level 2 silent check-in modal
-│   │   ├── MapPicker.tsx           # Location picker (Google Maps/Leaflet)
-│   │   ├── NotificationDropdown.tsx # In-app notification center
-│   │   ├── ProfileDropdown.tsx     # Theme, language, profile
-│   │   ├── RakshaRiskWidget.tsx    # 🔑 Floating risk score widget
-│   │   ├── ThemeScript.tsx         # SSR-safe theme initialization
-│   │   └── ThemeToggle.tsx         # Dark/light theme toggle
-│   ├── context/
-│   │   ├── LanguageContext.tsx     # i18n (EN/HI/TA/BN/TE/MR/PA)
-│   │   ├── LocationContext.tsx     # GPS + distress engine
-│   │   ├── NotificationContext.tsx # In-app notifications
-│   │   ├── RakshaScoreContext.tsx  # 🔑 Global risk score provider
-│   │   └── ThemeContext.tsx        # Theme preference
-│   ├── dashboard/
-│   │   ├── layout.tsx      # 🔑 Main authenticated layout
-│   │   ├── page.tsx        # Command dashboard home
-│   │   ├── command/        # Incident management center
-│   │   ├── metrics/        # Impact & analytics
-│   │   ├── profile/        # Safety profile configuration
-│   │   ├── saferoute/      # Route planner & community map
-│   │   ├── safety/         # Silent SOS & manual trigger
-│   │   └── vault/          # Encrypted evidence storage
-│   ├── globals.css         # Design system tokens + global styles
-│   ├── layout.tsx          # Root HTML layout
-│   └── page.tsx            # Landing page (animated shield)
-├── lib/
-│   ├── distress/
-│   │   ├── audioAnalyzer.ts    # 🔑 Web Audio API FFT analysis
-│   │   ├── engine.ts           # 🔑 Base distress score engine
-│   │   ├── motionAnalyzer.ts   # 🔑 DeviceMotion jerk detection
-│   │   └── rakshaRiskScore.ts  # 🔑 Rule-based fusion scoring
-│   ├── location/
-│   │   └── history.ts          # GPS path analysis, haversine, speed
-│   └── supabase/
-│       ├── client.ts           # Browser Supabase client
-│       └── server.ts           # Server-side Supabase client
-├── messages/               # i18n JSON (7 languages)
-├── public/                 # Static assets (logo, icons)
-└── supabase/               # DB migrations & schema
-```
-
 ---
 
 ## 🚀 Getting Started
@@ -649,17 +486,6 @@ supabase db push
 # Or paste the schema from /supabase/migrations/
 ```
 
-**Required Tables:**
-
-| Table | Purpose |
-|-------|---------|
-| `profiles` | User profile, home/work locations, helper availability |
-| `trusted_contacts` | Emergency contacts with phone numbers |
-| `incidents` | Auto-created SOS incident records |
-| `trusted_contact_alerts` | Log of all SMS/WhatsApp alerts sent |
-| `police_alerts` | PCR dispatch records with reference numbers |
-| `peer_alerts` | Community helper broadcast records |
-| `vault_items` | Encrypted evidence files |
 
 ### 4. Boot Server
 
@@ -691,22 +517,6 @@ Open [http://localhost:3000](http://localhost:3000)
 | **Deployment** | Vercel | Edge network, automatic HTTPS, preview deployments |
 
 ---
-
-## 🌐 Page Overview
-
-| Route | Page | Description |
-|-------|------|-------------|
-| `/` | Landing | Animated shield hero, feature showcase |
-| `/auth/login` | Login | Email + OAuth sign in |
-| `/auth/signup` | Sign Up | Account creation with location setup |
-| `/dashboard` | Command Center | Live distress score, incident log, GPS map |
-| `/dashboard/safety` | Silent SOS | Manual trigger, audio monitor controls |
-| `/dashboard/profile` | Safety Profile | Trusted contacts, safe zones, home/work config |
-| `/dashboard/command` | Command Center | Full incident management, AI analysis |
-| `/dashboard/vault` | Evidence Vault | Encrypted audio/photo recordings |
-| `/dashboard/saferoute` | Safe Route | Route planning, community safety map |
-| `/dashboard/metrics` | Metrics | Impact stats, incident analytics |
-
 ---
 
 ## 🔐 Security & Privacy
@@ -728,23 +538,6 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 🌍 Multi-Language Support
-
-RakshaNet speaks the same language as its users. Full UI translation across:
-
-| Language | Code | Coverage |
-|----------|------|----------|
-| 🇬🇧 English | `en` | 100% |
-| 🇮🇳 Hindi | `hi` | 100% |
-| 🇮🇳 Tamil | `ta` | 100% |
-| 🇮🇳 Bengali | `bn` | 100% |
-| 🇮🇳 Telugu | `te` | 100% |
-| 🇮🇳 Marathi | `mr` | 100% |
-| 🇮🇳 Punjabi | `pa` | 100% |
-
-Language preference is persisted in the Supabase profile so it syncs across devices.
-
----
 
 ## 🏆 Why RakshaNet Wins
 
