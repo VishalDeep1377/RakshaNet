@@ -1,0 +1,46 @@
+{
+  "nav": {
+    "dashboard": "డాష్‌బోర్డ్",
+    "silent_sos": "సైలెంట్ SOS",
+    "safety_profile": "భద్రతా ప్రొఫైల్",
+    "command_center": "కమాండ్ సెంటర్",
+    "evidence_vault": "సాక్ష్యాల తిజోరీ",
+    "safe_route": "సురక్షిత మార్గం",
+    "impact_metrics": "ప్రభావ మెట్రిక్స్"
+  },
+  "common": {
+    "save": "సేవ్ చేయి",
+    "cancel": "రద్దు చేయి",
+    "close": "మూసివేయి",
+    "loading": "లోడవుతోంది…",
+    "sign_out": "సైన్ అవుట్",
+    "system_monitoring": "సిస్టమ్ పర్యవేక్షణ సక్రియంగా ఉంది",
+    "notifications": "నోటిఫికేషన్లు",
+    "mark_all_read": "అన్నింటినీ చదివినట్లు గుర్తించు",
+    "clear_all": "అన్నింటినీ తొలగించు",
+    "no_notifications": "ఇంకా నోటిఫికేషన్లు లేవు",
+    "alerts_appear_here": "మీ భద్రతా నెట్‌వర్క్ నుండి హెచ్చరికలు ఇక్కడ కనిపిస్తాయి."
+  },
+  "profile": {
+    "title": "భద్రతా ప్రొఫైల్",
+    "language_label": "ఇష్టమైన భాష",
+    "language_hint": "యాప్ ఇంటర్‌ఫేస్ ఈ భాషకు మారుతుంది",
+    "profile_strength": "ప్రొఫైల్ బలం",
+    "save_profile": "ప్రొఫైల్ సేవ్ చేయి"
+  },
+  "safety": {
+    "sos_title": "సైలెంట్ SOS",
+    "risk_score": "రక్షా రిస్క్ స్కోర్",
+    "distress_score": "రియల్-టైమ్ సంక్షోభ స్కోర్",
+    "safe": "సురక్షితం",
+    "suspicious": "అనుమానాస్పదం",
+    "high_risk": "అధిక ప్రమాదం",
+    "confirmed": "ధృవీకరించబడింది",
+    "critical": "విమర్శనాత్మకం"
+  },
+  "dashboard": {
+    "welcome": "తిరిగి స్వాగతం",
+    "status_safe": "స్థితి: సురక్షితం",
+    "raksha_risk": "రక్షా రిస్క్ స్కోర్"
+  }
+}

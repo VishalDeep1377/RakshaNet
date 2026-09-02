@@ -1,0 +1,46 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "silent_sos": "Silent SOS",
+    "safety_profile": "Safety Profile",
+    "command_center": "Command Center",
+    "evidence_vault": "Evidence Vault",
+    "safe_route": "SafeRoute",
+    "impact_metrics": "Impact Metrics"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "loading": "Loading…",
+    "sign_out": "Sign Out",
+    "system_monitoring": "System monitoring active",
+    "notifications": "Notifications",
+    "mark_all_read": "Mark all read",
+    "clear_all": "Clear all",
+    "no_notifications": "No notifications yet",
+    "alerts_appear_here": "Alerts from your safety network will appear here."
+  },
+  "profile": {
+    "title": "Safety Profile",
+    "language_label": "Preferred Language",
+    "language_hint": "The app interface will switch to this language",
+    "profile_strength": "Profile Strength",
+    "save_profile": "Save Profile"
+  },
+  "safety": {
+    "sos_title": "Silent SOS",
+    "risk_score": "Raksha Risk Score",
+    "distress_score": "Real-Time Distress Score",
+    "safe": "Safe",
+    "suspicious": "Suspicious",
+    "high_risk": "High Risk",
+    "confirmed": "Confirmed",
+    "critical": "Critical"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "status_safe": "Status: Safe",
+    "raksha_risk": "Raksha Risk Score"
+  }
+}

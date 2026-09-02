@@ -1,0 +1,46 @@
+{
+  "nav": {
+    "dashboard": "ড্যাশবোর্ড",
+    "silent_sos": "নীরব SOS",
+    "safety_profile": "নিরাপত্তা প্রোফাইল",
+    "command_center": "কমান্ড সেন্টার",
+    "evidence_vault": "প্রমাণ ভল্ট",
+    "safe_route": "নিরাপদ পথ",
+    "impact_metrics": "প্রভাব পরিমাপ"
+  },
+  "common": {
+    "save": "সংরক্ষণ করুন",
+    "cancel": "বাতিল করুন",
+    "close": "বন্ধ করুন",
+    "loading": "লোড হচ্ছে…",
+    "sign_out": "সাইন আউট",
+    "system_monitoring": "সিস্টেম পর্যবেক্ষণ সক্রিয়",
+    "notifications": "বিজ্ঞপ্তি",
+    "mark_all_read": "সব পড়া হিসেবে চিহ্নিত করুন",
+    "clear_all": "সব মুছুন",
+    "no_notifications": "এখনো কোনো বিজ্ঞপ্তি নেই",
+    "alerts_appear_here": "আপনার নিরাপত্তা নেটওয়ার্ক থেকে সতর্কতা এখানে দেখাবে।"
+  },
+  "profile": {
+    "title": "নিরাপত্তা প্রোফাইল",
+    "language_label": "পছন্দের ভাষা",
+    "language_hint": "অ্যাপ ইন্টারফেস এই ভাষায় পরিবর্তিত হবে",
+    "profile_strength": "প্রোফাইল শক্তি",
+    "save_profile": "প্রোফাইল সংরক্ষণ করুন"
+  },
+  "safety": {
+    "sos_title": "নীরব SOS",
+    "risk_score": "রক্ষা ঝুঁকি স্কোর",
+    "distress_score": "রিয়েল-টাইম কষ্ট স্কোর",
+    "safe": "নিরাপদ",
+    "suspicious": "সন্দেহজনক",
+    "high_risk": "উচ্চ ঝুঁকি",
+    "confirmed": "নিশ্চিত",
+    "critical": "সংকটজনক"
+  },
+  "dashboard": {
+    "welcome": "আবার স্বাগতম",
+    "status_safe": "অবস্থা: নিরাপদ",
+    "raksha_risk": "রক্ষা ঝুঁকি স্কোর"
+  }
+}

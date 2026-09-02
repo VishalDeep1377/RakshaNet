@@ -1,0 +1,939 @@
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  User,
+  Home,
+  Briefcase,
+  Route,
+  Users,
+  Shield,
+  Bell,
+  Fingerprint,
+  MapPin,
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle2,
+  Phone,
+  Heart,
+  AlertTriangle,
+  Save,
+  Camera,
+  Lock,
+} from "lucide-react";
+
+/* ============================================================
+   TYPES
+   ============================================================ */
+interface TrustedContact {
+  id: string;
+  name: string;
+  phone: string;
+  relationship: string;
+  priority: "Primary" | "Secondary";
+  canViewLocation: boolean;
+  canReceiveEvidence: boolean;
+  notificationPref: string;
+}
+
+interface SafeLocation {
+  id: string;
+  name: string;
+  address: string;
+  radius: number;
+  isActive: boolean;
+}
+
+interface WorkLocation {
+  id: string;
+  name: string;
+  address: string;
+  startTime: string;
+  endTime: string;
+}
+
+/* ============================================================
+   PROFILE STRENGTH CALCULATOR
+   ============================================================ */
+function ProfileStrength({ sections }: { sections: Record<string, boolean> }) {
+  const completed = Object.values(sections).filter(Boolean).length;
+  const total = Object.values(sections).length;
+  const pct = Math.round((completed / total) * 100);
+  const color = pct >= 80 ? "#00FF88" : pct >= 50 ? "#FFB800" : "#FF2D55";
+
+  return (
+    <div
+      className="glass rounded-2xl p-5 sticky top-24"
+      style={{ borderColor: `${color}25` }}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-bold text-white">Profile Strength</h3>
+        <span className="text-xl font-black mono" style={{ color }}>
+          {pct}%
+        </span>
+      </div>
+      <div
+        className="h-2 rounded-full overflow-hidden mb-3"
+        style={{ background: "rgba(255,255,255,0.06)" }}
+      >
+        <motion.div
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="h-full rounded-full"
+          style={{ background: `linear-gradient(90deg, ${color}80, ${color})` }}
+        />
+      </div>
+      <p className="text-xs text-white/35 mb-4">
+        {pct >= 80
+          ? "Excellent! Your profile is comprehensive."
+          : pct >= 50
+          ? "Good progress. Complete more sections to improve response quality."
+          : "Complete your profile to maximize protection coverage."}
+      </p>
+      <div className="space-y-2">
+        {Object.entries(sections).map(([label, done]) => (
+          <div key={label} className="flex items-center gap-2">
+            <div
+              className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{
+                background: done ? "rgba(0,255,136,0.2)" : "rgba(255,255,255,0.05)",
+                border: `1px solid ${done ? "rgba(0,255,136,0.4)" : "rgba(255,255,255,0.1)"}`,
+              }}
+            >
+              {done && <CheckCircle2 className="w-2.5 h-2.5" style={{ color: "#00FF88" }} />}
+            </div>
+            <span
+              className="text-xs"
+              style={{ color: done ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.25)" }}
+            >
+              {label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   SECTION WRAPPER
+   ============================================================ */
+function ProfileSection({
+  icon: Icon,
+  title,
+  subtitle,
+  color,
+  children,
+  defaultOpen = false,
+}: {
+  icon: React.ElementType;
+  title: string;
+  subtitle: string;
+  color: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div
+      className="glass rounded-2xl overflow-hidden"
+      style={{ borderColor: open ? `${color}25` : undefined }}
+    >
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/5 transition-all duration-200"
+      >
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: `${color}15`, border: `1px solid ${color}30` }}
+        >
+          <Icon className="w-5 h-5" style={{ color }} />
+        </div>
+        <div className="flex-1">
+          <div className="text-sm font-bold text-white">{title}</div>
+          <div className="text-xs text-white/35 mt-0.5">{subtitle}</div>
+        </div>
+        {open ? (
+          <ChevronUp className="w-4 h-4 text-white/30" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-white/30" />
+        )}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <div
+              className="px-5 pb-6"
+              style={{ borderTop: `1px solid ${color}15` }}
+            >
+              <div className="pt-5">{children}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ============================================================
+   FORM FIELD COMPONENTS
+   ============================================================ */
+function FormInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+  hint?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-xs text-white/40 mb-1.5 tracking-wide uppercase">
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-4 py-3 rounded-xl text-sm text-white outline-none transition-all duration-200"
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}
+        onFocus={(e) => (e.target.style.borderColor = "rgba(0,240,255,0.35)")}
+        onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+      />
+      {hint && <p className="text-xs text-white/25 mt-1">{hint}</p>}
+    </div>
+  );
+}
+
+function FormSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+}) {
+  return (
+    <div>
+      <label className="block text-xs text-white/40 mb-1.5 tracking-wide uppercase">
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all duration-200 appearance-none"
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          color: value ? "white" : "rgba(255,255,255,0.3)",
+        }}
+        onFocus={(e) => (e.target.style.borderColor = "rgba(0,240,255,0.35)")}
+        onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+      >
+        <option value="">Select...</option>
+        {options.map((o) => (
+          <option key={o} value={o} style={{ background: "#0D1220" }}>
+            {o}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function Toggle({
+  label,
+  hint,
+  value,
+  onChange,
+  color = "#00F0FF",
+}: {
+  label: string;
+  hint?: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+  color?: string;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <div className="text-sm text-white/70">{label}</div>
+        {hint && <div className="text-xs text-white/30 mt-0.5">{hint}</div>}
+      </div>
+      <button
+        onClick={() => onChange(!value)}
+        className="relative w-11 h-6 rounded-full transition-all duration-300 flex-shrink-0"
+        style={{ background: value ? `linear-gradient(135deg, ${color}, ${color}80)` : "rgba(255,255,255,0.08)" }}
+      >
+        <motion.div
+          animate={{ x: value ? 21 : 2 }}
+          transition={{ type: "spring", damping: 20, stiffness: 300 }}
+          className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-lg"
+        />
+      </button>
+    </div>
+  );
+}
+
+/* ============================================================
+   MAIN PROFILE PAGE
+   ============================================================ */
+export default function SafetyProfilePage() {
+  // A. Personal Info
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [gender, setGender] = useState("");
+  const [ageRange, setAgeRange] = useState("");
+  const [bloodGroup, setBloodGroup] = useState("");
+  const [medicalNotes, setMedicalNotes] = useState("");
+  const [language, setLanguage] = useState("");
+
+  // B. Home Location
+  const [homeAddress, setHomeAddress] = useState("");
+  const [homeRadius, setHomeRadius] = useState("200");
+  const [homeNotify, setHomeNotify] = useState(true);
+
+  // C. Work Locations
+  const [workLocations, setWorkLocations] = useState<WorkLocation[]>([
+    { id: "w1", name: "College", address: "", startTime: "09:00", endTime: "17:00" },
+  ]);
+
+  // D. Regular Routes (simplified)
+  const [routes, setRoutes] = useState([
+    { id: "rt1", from: "", to: "", time: "", isPrimary: true },
+  ]);
+
+  // E. Trusted Contacts
+  const [contacts, setContacts] = useState<TrustedContact[]>([
+    {
+      id: "tc1",
+      name: "",
+      phone: "",
+      relationship: "",
+      priority: "Primary",
+      canViewLocation: true,
+      canReceiveEvidence: false,
+      notificationPref: "SMS + App",
+    },
+  ]);
+
+  // F. Preferred Responder
+  const [responderGender, setResponderGender] = useState("Female preferred");
+  const [responderLanguage, setResponderLanguage] = useState("Hindi");
+  const [responderInstructions, setResponderInstructions] = useState("");
+
+  // G. Emergency Preferences
+  const [autoEscalate, setAutoEscalate] = useState(true);
+  const [escalateAfter, setEscalateAfter] = useState("60");
+  const [shareLocationContacts, setShareLocationContacts] = useState(true);
+  const [shareLocationResponder, setShareLocationResponder] = useState(true);
+  const [autoEvidence, setAutoEvidence] = useState(true);
+  const [confirmSafe, setConfirmSafe] = useState(true);
+
+  // H. Silent Triggers
+  const [triggerLongPress, setTriggerLongPress] = useState(true);
+  const [triggerVolume, setTriggerVolume] = useState(true);
+  const [triggerShake, setTriggerShake] = useState(false);
+  const [triggerDoublePower, setTriggerDoublePower] = useState(true);
+  const [cancelWindow, setCancelWindow] = useState("8");
+  const [sensitivity, setSensitivity] = useState("Medium");
+
+  // I. Safe Locations
+  const [safeLocations, setSafeLocations] = useState<SafeLocation[]>([
+    { id: "sl1", name: "Home", address: "", radius: 150, isActive: true },
+    { id: "sl2", name: "College", address: "", radius: 200, isActive: true },
+  ]);
+
+  const [saved, setSaved] = useState(false);
+
+  /* Completion tracking */
+  const sectionCompletion = {
+    "Personal Info": !!(fullName && phone),
+    "Home Location": !!homeAddress,
+    "Work/College": workLocations.some((w) => !!w.address),
+    "Regular Routes": routes.some((r) => !!(r.from && r.to)),
+    "Trusted Contacts": contacts.some((c) => !!(c.name && c.phone)),
+    "Preferred Responder": !!responderGender,
+    "Emergency Prefs": true,
+    "Silent Triggers": true,
+    "Safe Locations": safeLocations.some((s) => !!s.address),
+  };
+
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  const addContact = () => {
+    setContacts((prev) => [
+      ...prev,
+      {
+        id: `tc${Date.now()}`,
+        name: "",
+        phone: "",
+        relationship: "",
+        priority: "Secondary",
+        canViewLocation: true,
+        canReceiveEvidence: false,
+        notificationPref: "SMS + App",
+      },
+    ]);
+  };
+
+  const removeContact = (id: string) =>
+    setContacts((prev) => prev.filter((c) => c.id !== id));
+
+  const updateContact = (id: string, field: keyof TrustedContact, value: unknown) =>
+    setContacts((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+    );
+
+  return (
+    <div className="max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-black text-white">Safety Profile</h1>
+          <p className="text-sm text-white/40 mt-1">
+            Your personal intelligence layer. The more you share, the smarter your protection.
+          </p>
+        </div>
+        <motion.button
+          onClick={handleSave}
+          className="btn-primary text-xs"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          animate={saved ? { scale: [1, 1.05, 1] } : {}}
+        >
+          {saved ? (
+            <>
+              <CheckCircle2 className="w-4 h-4" />
+              Saved!
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4" />
+              Save All Changes
+            </>
+          )}
+        </motion.button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Sidebar: strength indicator */}
+        <div className="lg:col-span-1">
+          <ProfileStrength sections={sectionCompletion} />
+        </div>
+
+        {/* Main: all sections */}
+        <div className="lg:col-span-3 space-y-4">
+          {/* ====== A. PERSONAL INFO ====== */}
+          <ProfileSection
+            icon={User}
+            title="Personal Safety Profile"
+            subtitle="Your identity & medical info for emergency responders"
+            color="#00F0FF"
+            defaultOpen={true}
+          >
+            {/* Avatar placeholder */}
+            <div className="flex items-center gap-4 mb-6">
+              <div
+                className="w-16 h-16 rounded-2xl flex items-center justify-center cursor-pointer"
+                style={{ background: "rgba(0,240,255,0.1)", border: "1px dashed rgba(0,240,255,0.3)" }}
+              >
+                <Camera className="w-6 h-6" style={{ color: "#00F0FF" }} />
+              </div>
+              <div>
+                <p className="text-sm text-white/60">Profile Photo (Optional)</p>
+                <p className="text-xs text-white/25">Only shared with responders during active incident</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormInput label="Full Name" value={fullName} onChange={setFullName} placeholder="Your full name" />
+              <FormInput label="Phone Number" value={phone} onChange={setPhone} placeholder="+91 98765 43210" type="tel" />
+              <FormSelect label="Gender (Optional)" value={gender} onChange={setGender}
+                options={["Female", "Male", "Non-binary", "Prefer not to say"]} />
+              <FormSelect label="Age Range (Optional)" value={ageRange} onChange={setAgeRange}
+                options={["Under 18", "18–25", "26–35", "36–45", "46+"]} />
+              <FormSelect label="Blood Group (Optional)" value={bloodGroup} onChange={setBloodGroup}
+                options={["A+", "A−", "B+", "B−", "AB+", "AB−", "O+", "O−"]} />
+              <FormSelect label="Preferred Language" value={language} onChange={setLanguage}
+                options={["Hindi", "English", "Tamil", "Telugu", "Bengali", "Marathi", "Kannada", "Malayalam"]} />
+              <div className="sm:col-span-2">
+                <label className="block text-xs text-white/40 mb-1.5 tracking-wide uppercase">
+                  Medical Notes / Allergies (Optional)
+                </label>
+                <textarea
+                  value={medicalNotes}
+                  onChange={(e) => setMedicalNotes(e.target.value)}
+                  placeholder="Any conditions, allergies, or medications responders should know..."
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl text-sm text-white outline-none resize-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  onFocus={(e) => (e.target.style.borderColor = "rgba(0,240,255,0.35)")}
+                  onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+                />
+              </div>
+            </div>
+          </ProfileSection>
+
+          {/* ====== B. HOME LOCATION ====== */}
+          <ProfileSection
+            icon={Home}
+            title="Home Location"
+            subtitle="Used to detect route deviations and notify you when you arrive safely"
+            color="#B47FFF"
+          >
+            <div className="space-y-4">
+              <FormInput
+                label="Home Address"
+                value={homeAddress}
+                onChange={setHomeAddress}
+                placeholder="Start typing your address..."
+                hint="Or tap the map to pin your location"
+              />
+              {/* Mock map pin area */}
+              <div
+                className="rounded-xl h-32 flex items-center justify-center cursor-pointer transition-all hover:bg-white/5"
+                style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(179,127,255,0.3)" }}
+              >
+                <div className="text-center">
+                  <MapPin className="w-6 h-6 mx-auto mb-1" style={{ color: "#B47FFF" }} />
+                  <p className="text-xs text-white/30">Tap to open map picker</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormSelect label="Safe Radius" value={homeRadius} onChange={setHomeRadius}
+                  options={["100m", "150m", "200m", "300m", "500m"]} />
+              </div>
+              <Toggle
+                label="Notify trusted contacts when I reach home"
+                hint="Sends a silent 'arrived safely' notification"
+                value={homeNotify}
+                onChange={setHomeNotify}
+                color="#B47FFF"
+              />
+            </div>
+          </ProfileSection>
+
+          {/* ====== C. WORK/COLLEGE ====== */}
+          <ProfileSection
+            icon={Briefcase}
+            title="College / Work Locations"
+            subtitle="Helps detect if you're delayed or haven't arrived as expected"
+            color="#FFB800"
+          >
+            <div className="space-y-5">
+              {workLocations.map((loc, i) => (
+                <div
+                  key={loc.id}
+                  className="rounded-xl p-4 space-y-4"
+                  style={{ background: "rgba(255,184,0,0.04)", border: "1px solid rgba(255,184,0,0.15)" }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                      Location {i + 1}
+                    </span>
+                    {workLocations.length > 1 && (
+                      <button
+                        onClick={() => setWorkLocations((p) => p.filter((w) => w.id !== loc.id))}
+                        className="text-white/20 hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <FormInput label="Label" value={loc.name}
+                      onChange={(v) => setWorkLocations((p) => p.map((w) => w.id === loc.id ? { ...w, name: v } : w))}
+                      placeholder="College / Office / Coaching..." />
+                    <FormInput label="Address" value={loc.address}
+                      onChange={(v) => setWorkLocations((p) => p.map((w) => w.id === loc.id ? { ...w, address: v } : w))}
+                      placeholder="Full address" />
+                    <FormInput label="Start Time" value={loc.startTime} type="time"
+                      onChange={(v) => setWorkLocations((p) => p.map((w) => w.id === loc.id ? { ...w, startTime: v } : w))} />
+                    <FormInput label="End Time" value={loc.endTime} type="time"
+                      onChange={(v) => setWorkLocations((p) => p.map((w) => w.id === loc.id ? { ...w, endTime: v } : w))} />
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={() => setWorkLocations((p) => [...p, { id: `w${Date.now()}`, name: "", address: "", startTime: "09:00", endTime: "17:00" }])}
+                className="w-full py-3 rounded-xl text-sm text-white/30 border transition-all hover:text-white/60"
+                style={{ border: "1px dashed rgba(255,184,0,0.2)" }}
+              >
+                <Plus className="w-4 h-4 inline mr-2" />
+                Add Another Location
+              </button>
+            </div>
+          </ProfileSection>
+
+          {/* ====== D. REGULAR ROUTES ====== */}
+          <ProfileSection
+            icon={Route}
+            title="Regular Routes"
+            subtitle="Your frequent travel paths for proactive risk scoring"
+            color="#00F0FF"
+          >
+            <div className="space-y-4">
+              {routes.map((route, i) => (
+                <div
+                  key={route.id}
+                  className="rounded-xl p-4 space-y-3"
+                  style={{ background: "rgba(0,240,255,0.03)", border: "1px solid rgba(0,240,255,0.12)" }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-cyan-400 uppercase tracking-widest">
+                        Route {i + 1}
+                      </span>
+                      {route.isPrimary && (
+                        <span className="badge badge-cyan text-[10px] px-1.5 py-0.5">Primary</span>
+                      )}
+                    </div>
+                    {routes.length > 1 && (
+                      <button
+                        onClick={() => setRoutes((p) => p.filter((r) => r.id !== route.id))}
+                        className="text-white/20 hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <FormInput label="From" value={route.from}
+                      onChange={(v) => setRoutes((p) => p.map((r) => r.id === route.id ? { ...r, from: v } : r))}
+                      placeholder="Start point" />
+                    <FormInput label="To" value={route.to}
+                      onChange={(v) => setRoutes((p) => p.map((r) => r.id === route.id ? { ...r, to: v } : r))}
+                      placeholder="End point" />
+                    <FormInput label="Usual Travel Time" value={route.time}
+                      onChange={(v) => setRoutes((p) => p.map((r) => r.id === route.id ? { ...r, time: v } : r))}
+                      placeholder="e.g. 08:30 AM" />
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={() => setRoutes((p) => [...p, { id: `rt${Date.now()}`, from: "", to: "", time: "", isPrimary: false }])}
+                className="w-full py-3 rounded-xl text-sm text-white/30 border transition-all hover:text-white/60"
+                style={{ border: "1px dashed rgba(0,240,255,0.15)" }}
+              >
+                <Plus className="w-4 h-4 inline mr-2" />
+                Add Route
+              </button>
+            </div>
+          </ProfileSection>
+
+          {/* ====== E. TRUSTED CONTACTS ====== */}
+          <ProfileSection
+            icon={Users}
+            title="Trusted Contacts"
+            subtitle="People notified when you trigger an alert — minimum 1 recommended"
+            color="#FF2D55"
+          >
+            <div className="space-y-5">
+              {contacts.map((contact, i) => (
+                <div
+                  key={contact.id}
+                  className="rounded-xl p-5 space-y-4"
+                  style={{ background: "rgba(255,45,85,0.04)", border: "1px solid rgba(255,45,85,0.15)" }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Heart className="w-4 h-4" style={{ color: "#FF2D55" }} />
+                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#FF2D55" }}>
+                        Contact {i + 1}
+                      </span>
+                    </div>
+                    {contacts.length > 1 && (
+                      <button
+                        onClick={() => removeContact(contact.id)}
+                        className="text-white/20 hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <FormInput label="Name" value={contact.name}
+                      onChange={(v) => updateContact(contact.id, "name", v)}
+                      placeholder="Full name" />
+                    <FormInput label="Phone Number" value={contact.phone}
+                      onChange={(v) => updateContact(contact.id, "phone", v)}
+                      placeholder="+91 98765 43210" type="tel" />
+                    <FormSelect label="Relationship" value={contact.relationship}
+                      onChange={(v) => updateContact(contact.id, "relationship", v)}
+                      options={["Father", "Mother", "Sister", "Brother", "Partner", "Friend", "Colleague", "Other"]} />
+                    <FormSelect label="Priority" value={contact.priority}
+                      onChange={(v) => updateContact(contact.id, "priority", v as "Primary" | "Secondary")}
+                      options={["Primary", "Secondary"]} />
+                    <FormSelect label="Notification Preference" value={contact.notificationPref}
+                      onChange={(v) => updateContact(contact.id, "notificationPref", v)}
+                      options={["SMS + App", "App Only", "Call + SMS", "Call Only"]} />
+                  </div>
+                  <div className="space-y-3 pt-2">
+                    <Toggle
+                      label="Can view live location during incident"
+                      value={contact.canViewLocation}
+                      onChange={(v) => updateContact(contact.id, "canViewLocation", v)}
+                      color="#FF2D55"
+                    />
+                    <Toggle
+                      label="Can receive evidence from vault"
+                      hint="Only if you explicitly consent during/after incident"
+                      value={contact.canReceiveEvidence}
+                      onChange={(v) => updateContact(contact.id, "canReceiveEvidence", v)}
+                      color="#FF2D55"
+                    />
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={addContact}
+                className="w-full py-3 rounded-xl text-sm text-white/30 border transition-all hover:text-white/60"
+                style={{ border: "1px dashed rgba(255,45,85,0.2)" }}
+              >
+                <Plus className="w-4 h-4 inline mr-2" />
+                Add Trusted Contact
+              </button>
+              <div
+                className="flex items-start gap-2 p-3 rounded-xl"
+                style={{ background: "rgba(255,45,85,0.06)", border: "1px solid rgba(255,45,85,0.15)" }}
+              >
+                <Lock className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "#FF2D55" }} />
+                <p className="text-xs text-white/40">
+                  Contact information is end-to-end encrypted. Only notified during active incidents unless you enable continuous sharing.
+                </p>
+              </div>
+            </div>
+          </ProfileSection>
+
+          {/* ====== F. PREFERRED RESPONDER ====== */}
+          <ProfileSection
+            icon={Shield}
+            title="Preferred Responder"
+            subtitle="Help us match you with the most appropriate responder"
+            color="#00FF88"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormSelect label="Responder Gender Preference" value={responderGender} onChange={setResponderGender}
+                options={["Female preferred", "Any verified", "Campus security", "NGO partner", "Police only"]} />
+              <FormSelect label="Preferred Language" value={responderLanguage} onChange={setResponderLanguage}
+                options={["Hindi", "English", "Tamil", "Telugu", "Bengali", "Marathi", "Kannada", "Malayalam"]} />
+              <div className="sm:col-span-2">
+                <label className="block text-xs text-white/40 mb-1.5 tracking-wide uppercase">
+                  Special Instructions for Responders
+                </label>
+                <textarea
+                  value={responderInstructions}
+                  onChange={(e) => setResponderInstructions(e.target.value)}
+                  placeholder="Any specific needs or context for responding to your alerts..."
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl text-sm text-white outline-none resize-none"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  onFocus={(e) => (e.target.style.borderColor = "rgba(0,255,136,0.35)")}
+                  onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+                />
+              </div>
+            </div>
+          </ProfileSection>
+
+          {/* ====== G. EMERGENCY PREFERENCES ====== */}
+          <ProfileSection
+            icon={Bell}
+            title="Emergency Preferences"
+            subtitle="Control exactly what happens when an incident is triggered"
+            color="#FFB800"
+          >
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <Toggle
+                    label="Auto-escalate to 112 if no responder accepts"
+                    value={autoEscalate}
+                    onChange={setAutoEscalate}
+                    color="#FFB800"
+                  />
+                  {autoEscalate && (
+                    <div className="mt-2 ml-0">
+                      <FormSelect label="Escalate after" value={escalateAfter} onChange={setEscalateAfter}
+                        options={["30 seconds", "60 seconds", "90 seconds", "120 seconds"]} />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Toggle label="Share live location with trusted contacts automatically" value={shareLocationContacts} onChange={setShareLocationContacts} color="#FFB800" />
+                <Toggle label="Share live location with dispatched responders" value={shareLocationResponder} onChange={setShareLocationResponder} color="#FFB800" />
+                <Toggle
+                  label="Start audio/location evidence capture automatically"
+                  hint="No raw audio stored. Only heuristic metadata is captured."
+                  value={autoEvidence}
+                  onChange={setAutoEvidence}
+                  color="#FFB800"
+                />
+                <Toggle
+                  label="Require 'I'm Safe' confirmation to close incident"
+                  hint="Prevents accidental resolution"
+                  value={confirmSafe}
+                  onChange={setConfirmSafe}
+                  color="#FFB800"
+                />
+              </div>
+            </div>
+          </ProfileSection>
+
+          {/* ====== H. SILENT TRIGGER SETTINGS ====== */}
+          <ProfileSection
+            icon={Fingerprint}
+            title="Silent Trigger Settings"
+            subtitle="Configure how you activate SilentShield without being noticed"
+            color="#B47FFF"
+          >
+            <div className="space-y-4">
+              <div
+                className="p-4 rounded-xl mb-4"
+                style={{ background: "rgba(179,127,255,0.06)", border: "1px solid rgba(179,127,255,0.15)" }}
+              >
+                <p className="text-xs text-white/50">
+                  <AlertTriangle className="w-3.5 h-3.5 inline mr-1.5" style={{ color: "#FFB800" }} />
+                  Only enable triggers you&apos;re comfortable with. Each trigger starts a cancel window before dispatching.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <Toggle label="Long press SOS button" value={triggerLongPress} onChange={setTriggerLongPress} color="#B47FFF" />
+                <Toggle label="Volume Up × 3 (rapid)" value={triggerVolume} onChange={setTriggerVolume} color="#B47FFF" />
+                <Toggle label="Double-tap power button (simulated)" value={triggerDoublePower} onChange={setTriggerDoublePower} color="#B47FFF" />
+                <Toggle label="Shake gesture" hint="May trigger accidentally during exercise" value={triggerShake} onChange={setTriggerShake} color="#B47FFF" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <FormSelect label="Sensitivity Level" value={sensitivity} onChange={setSensitivity}
+                  options={["Low", "Medium", "High"]} />
+                <FormSelect label="Cancel Window Duration" value={cancelWindow} onChange={setCancelWindow}
+                  options={["5 seconds", "8 seconds", "10 seconds", "15 seconds"]} />
+              </div>
+            </div>
+          </ProfileSection>
+
+          {/* ====== I. SAFE LOCATIONS ====== */}
+          <ProfileSection
+            icon={MapPin}
+            title="Safe Locations"
+            subtitle="Places where you're automatically considered safe when you arrive"
+            color="#00FF88"
+          >
+            <div className="space-y-4">
+              {safeLocations.map((loc, i) => (
+                <div
+                  key={loc.id}
+                  className="rounded-xl p-4 space-y-3"
+                  style={{ background: "rgba(0,255,136,0.04)", border: "1px solid rgba(0,255,136,0.12)" }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#00FF88" }}>
+                      Safe Location {i + 1}
+                    </span>
+                    {safeLocations.length > 1 && (
+                      <button
+                        onClick={() => setSafeLocations((p) => p.filter((s) => s.id !== loc.id))}
+                        className="text-white/20 hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <FormInput
+                      label="Name"
+                      value={loc.name}
+                      onChange={(v) => setSafeLocations((p) => p.map((s) => s.id === loc.id ? { ...s, name: v } : s))}
+                      placeholder="Home / College..."
+                    />
+                    <FormInput
+                      label="Address / Area"
+                      value={loc.address}
+                      onChange={(v) => setSafeLocations((p) => p.map((s) => s.id === loc.id ? { ...s, address: v } : s))}
+                      placeholder="Full address"
+                    />
+                    <FormSelect
+                      label="Safe Radius"
+                      value={`${loc.radius}m`}
+                      onChange={(v) => setSafeLocations((p) => p.map((s) => s.id === loc.id ? { ...s, radius: parseInt(v) } : s))}
+                      options={["100m", "150m", "200m", "300m", "500m"]}
+                    />
+                  </div>
+                  <Toggle
+                    label="Consider me safe when I enter this area"
+                    value={loc.isActive}
+                    onChange={(v) => setSafeLocations((p) => p.map((s) => s.id === loc.id ? { ...s, isActive: v } : s))}
+                    color="#00FF88"
+                  />
+                </div>
+              ))}
+              <button
+                onClick={() => setSafeLocations((p) => [...p, { id: `sl${Date.now()}`, name: "", address: "", radius: 200, isActive: true }])}
+                className="w-full py-3 rounded-xl text-sm text-white/30 border transition-all hover:text-white/60"
+                style={{ border: "1px dashed rgba(0,255,136,0.2)" }}
+              >
+                <Plus className="w-4 h-4 inline mr-2" />
+                Add Safe Location
+              </button>
+            </div>
+          </ProfileSection>
+
+          {/* Save button (bottom) */}
+          <motion.button
+            onClick={handleSave}
+            className="w-full btn-primary justify-center py-4 text-sm"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            animate={saved ? { scale: [1, 1.02, 1] } : {}}
+          >
+            {saved ? (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                Profile Saved Successfully!
+              </>
+            ) : (
+              <>
+                <Save className="w-5 h-5" />
+                Save All Changes
+              </>
+            )}
+          </motion.button>
+
+          <p className="text-xs text-center text-white/20 pb-4">
+            <Lock className="w-3 h-3 inline mr-1" />
+            Your profile data is private. Shared only with your consent during active incidents.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

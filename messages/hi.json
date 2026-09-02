@@ -1,0 +1,46 @@
+{
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "silent_sos": "साइलेंट SOS",
+    "safety_profile": "सुरक्षा प्रोफ़ाइल",
+    "command_center": "कमांड सेंटर",
+    "evidence_vault": "साक्ष्य तिजोरी",
+    "safe_route": "सुरक्षित मार्ग",
+    "impact_metrics": "प्रभाव मेट्रिक्स"
+  },
+  "common": {
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "close": "बंद करें",
+    "loading": "लोड हो रहा है…",
+    "sign_out": "साइन आउट",
+    "system_monitoring": "सिस्टम निगरानी सक्रिय",
+    "notifications": "सूचनाएं",
+    "mark_all_read": "सभी पढ़े के रूप में चिह्नित करें",
+    "clear_all": "सभी साफ करें",
+    "no_notifications": "अभी तक कोई सूचना नहीं",
+    "alerts_appear_here": "आपके सुरक्षा नेटवर्क से अलर्ट यहां दिखाई देंगे।"
+  },
+  "profile": {
+    "title": "सुरक्षा प्रोफ़ाइल",
+    "language_label": "पसंदीदा भाषा",
+    "language_hint": "ऐप इंटरफ़ेस इस भाषा में बदल जाएगा",
+    "profile_strength": "प्रोफ़ाइल मज़बूती",
+    "save_profile": "प्रोफ़ाइल सहेजें"
+  },
+  "safety": {
+    "sos_title": "साइलेंट SOS",
+    "risk_score": "रक्षा जोखिम स्कोर",
+    "distress_score": "रियल-टाइम संकट स्कोर",
+    "safe": "सुरक्षित",
+    "suspicious": "संदिग्ध",
+    "high_risk": "उच्च जोखिम",
+    "confirmed": "पुष्टि",
+    "critical": "गंभीर"
+  },
+  "dashboard": {
+    "welcome": "वापसी पर स्वागत है",
+    "status_safe": "स्थिति: सुरक्षित",
+    "raksha_risk": "रक्षा जोखिम स्कोर"
+  }
+}

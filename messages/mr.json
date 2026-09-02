@@ -1,0 +1,46 @@
+{
+  "nav": {
+    "dashboard": "डॅशबोर्ड",
+    "silent_sos": "सायलेंट SOS",
+    "safety_profile": "सुरक्षा प्रोफाइल",
+    "command_center": "कमांड सेंटर",
+    "evidence_vault": "पुरावा तिजोरी",
+    "safe_route": "सुरक्षित मार्ग",
+    "impact_metrics": "प्रभाव मेट्रिक्स"
+  },
+  "common": {
+    "save": "जतन करा",
+    "cancel": "रद्द करा",
+    "close": "बंद करा",
+    "loading": "लोड होत आहे…",
+    "sign_out": "साइन आउट",
+    "system_monitoring": "सिस्टम देखरेख सक्रिय",
+    "notifications": "सूचना",
+    "mark_all_read": "सर्व वाचले म्हणून चिन्हांकित करा",
+    "clear_all": "सर्व साफ करा",
+    "no_notifications": "अद्याप कोणतीही सूचना नाही",
+    "alerts_appear_here": "तुमच्या सुरक्षा नेटवर्कमधून अलर्ट येथे दिसतील."
+  },
+  "profile": {
+    "title": "सुरक्षा प्रोफाइल",
+    "language_label": "आवडती भाषा",
+    "language_hint": "ॲप इंटरफेस या भाषेत बदलेल",
+    "profile_strength": "प्रोफाइल ताकद",
+    "save_profile": "प्रोफाइल जतन करा"
+  },
+  "safety": {
+    "sos_title": "सायलेंट SOS",
+    "risk_score": "रक्षा जोखीम स्कोर",
+    "distress_score": "रियल-टाइम त्रास स्कोर",
+    "safe": "सुरक्षित",
+    "suspicious": "संशयास्पद",
+    "high_risk": "उच्च धोका",
+    "confirmed": "पुष्टी",
+    "critical": "गंभीर"
+  },
+  "dashboard": {
+    "welcome": "परत स्वागत आहे",
+    "status_safe": "स्थिती: सुरक्षित",
+    "raksha_risk": "रक्षा जोखीम स्कोर"
+  }
+}
