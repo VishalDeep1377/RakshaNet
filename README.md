@@ -277,58 +277,6 @@ sequenceDiagram
     P-->>U: Peer Network Responder Routing Starts!
 ```
 
-### 🟡 Level 1 — Suspicious `(Score: 1–29)`
-> Mild anomaly detected. Monitoring is elevated but no user interruption occurs.
-- **Trigger**: Any single signal fires (e.g. only audio OR only night-time context)
-- **Action**: Display-only warning in the Raksha Risk Widget
-- **User Experience**: Widget badge turns amber — no alerts sent, no interruptions
-
-### 🟠 Level 2 — High Risk `(Score: 30–54)` — *Silent Check-In*
-> Multiple risk signals active. A silent, non-intrusive check-in is sent to the user.
-- **Action**: A fullscreen modal appears asking **"Are you safe?"** with Yes / No options
-- **Timer**: 60-second auto-escalation countdown — no response = escalates to Level 3
-- **If "Yes"**: All anomalies cleared, score reset to 0. **If "No"**: fires Level 3 immediately
-
-```
-┌─────────────────────────────────────────┐
-│         ⚠️  ARE YOU SAFE?               │
-│   RakshaNet detected elevated risk      │
-│   Raksha Risk Score: 42                 │
-│   ⏱️ Auto-escalating in 58s             │
-│  ✅ Yes, I'm Safe  │  🆘 No, Help Me   │
-└─────────────────────────────────────────┘
-```
-
-### 🔴 Level 3 — Confirmed Risk `(Score: 55–74)` — *Auto-SOS*
-> High confidence distress. **SOS is automatically initiated** — no user action needed.
-- **Trigger**: Score 55+ OR user taps "No, Help Me" on the L2 modal
-- **Actions Fired Automatically**:
-  1. 📱 Emergency SMS sent to primary trusted contact via Vonage SMS API
-  2. 💬 WhatsApp deep-link opened with pre-written emergency message
-  3. 📋 Incident record created in Supabase with GPS coordinates
-  4. 🔔 In-app notification shows SMS delivery confirmation
-
-**SMS Message Template:**
-```
-🆘 EMERGENCY ALERT — RakshaNet SilentShield
-[User's Full Name] is in a danger situation and needs help.
-Please check on them immediately — call or go to their location.
-📍 Current location: [Address]
-🗺️ Navigate: https://maps.google.com/?q=[lat],[lng]
-Sent automatically by RakshaNet SilentShield — AI Safety Network.
-```
-
-### 🆘 Level 4 — Critical Emergency `(Score: 75–87)` — *Full Escalation*
-> Maximum threat. **Police PCR unit notified + entire peer network broadcast.**
-- **Trigger**: Score 75+ OR manual SOS press (instantly reaches 87)
-- **Actions Fired Automatically**:
-  1. 🚔 PCR Unit dispatch logged with reference number (e.g. `PCR-M4X7-3291`)
-  2. 📱 ALL trusted contacts receive Critical SMS (parallel Vonage calls)
-  3. 💬 WhatsApp blast to every contact with CRITICAL message + live maps link
-  4. 📡 Peer network broadcast — all nearby RakshaNet users within 3km notified
-  5. 🔔 Toast alert shown to peer helpers asking "Someone needs help — can you assist?"
-
-
 ## 🛠 Features Deep-Dive
 
 <details open>
@@ -417,24 +365,6 @@ Sent automatically by RakshaNet SilentShield — AI Safety Network.
     └────────────────────┘  └────────────────────────┘  └────────────────────┘
 ```
 ---
-
-## 🤝 Community Safety Network
-
----
-
-<div align="center">
-  <h2>🛡️ Meet the Obsidian HoloShield Interface</h2>
-  <img src="https://readme-typing-svg.herokuapp.com?font=JetBrains+Mono&size=16&color=00FFA3&center=true&vCenter=true&lines=>_Loading_Command_Center...;>_Rendering_Glassmorphic_UI...;>_Ready_For_Deployment" />
-</div>
-
-RakshaNet abandons boring layouts for a cutting-edge **Cyber-Security Command Center** aesthetic:
-- **Glassmorphic Panels:** Intense backdrop blur (`backdrop-filter`) with semi-transparent panel borders mimicking tactical HUDs.
-- **Micro-Animations:** Driven by `framer-motion`, every number tick, chart load, and action pulses and fluidly enters the frame ensuring the interface feels "alive".
-- **Dynamic Context Glows:** The UI changes global accent colors automatically based on risk level. Ambient shadows pulse red during Level 4 Crits.
-
----
----
-
 ## 🚀 Getting Started
 
 ### Prerequisites
