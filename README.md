@@ -313,58 +313,7 @@ sequenceDiagram
 
 ---
 
-## 🏗️ Full System Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                         RAKSHANET SYSTEM ARCHITECTURE                        │
-└──────────────────────────────────────────────────────────────────────────────┘
-
-                              ┌─────────────────────┐
-                              │    USER'S BROWSER    │
-                              │   Next.js 16 + React │
-                              └──────────┬──────────┘
-                                         │
-              ┌──────────────────────────┼──────────────────────────┐
-              │                          │                          │
-    ┌─────────▼──────────┐  ┌────────────▼───────────┐  ┌──────────▼──────────┐
-    │  CLIENT LAYER       │  │    CONTEXT LAYER        │  │   SENSOR LAYER      │
-    │ app/page.tsx        │  │ LocationContext.tsx      │  │ audioAnalyzer.ts    │
-    │ dashboard/layout    │  │ RakshaScoreContext.tsx   │  │ motionAnalyzer.ts   │
-    │ dashboard/page      │  │ NotificationContext.tsx  │  │ Web Audio API       │
-    │ safety, profile,    │  │ ThemeContext.tsx          │  │ DeviceMotion API    │
-    │ command, vault,     │  │ LanguageContext.tsx       │  │ Geolocation API     │
-    │ saferoute, metrics  │  │                         │  │                     │
-    └─────────┬──────────┘  └────────────┬───────────┘  └──────────┬──────────┘
-              │                          │                          │
-              └──────────────────────────▼──────────────────────────┘
-                                         │
-                              ┌──────────▼──────────┐
-                              │  RAKSHA RISK ENGINE  │
-                              │ rakshaRiskScore.ts   │
-                              │ engine.ts            │
-                              │ audioAnalyzer.ts     │
-                              │ motionAnalyzer.ts    │
-                              └──────────┬──────────┘
-                                         │
-              ┌──────────────────────────┼──────────────────────────┐
-              │                          │                          │
-    ┌─────────▼──────────┐  ┌────────────▼───────────┐  ┌──────────▼──────────┐
-    │   NEXT.JS API       │  │      SUPABASE           │  │   EXTERNAL APIs     │
-    │   ROUTES            │  │   (Backend-as-a-Service)│  │ 📱 Vonage SMS API   │
-    │ /api/trusted-alert  │  │ • profiles              │  │ 🗺️ Google Maps API  │
-    │   POST → L3 SMS     │  │ • trusted_contacts      │  │ 💬 WhatsApp wa.me   │
-    │   PUT  → L4 CRIT    │  │ • incidents             │  │ 🌍 Geocoding API    │
-    │   GET  → history    │  │ • trusted_contact_alerts│  │                     │
-    │ /api/peer-alert     │  │ • police_alerts         │  │                     │
-    │   POST → broadcast  │  │ • peer_alerts           │  │                     │
-    │   PATCH → respond   │  │ • vault_items           │  │                     │
-    │ /api/chat           │  │ Realtime Subscriptions  │  │                     │
-    │ /api/geocode        │  │ Row Level Security      │  │                     │
-    │ /api/vault          │  │ Auth (Email/OAuth)       │  │                     │
-    └────────────────────┘  └────────────────────────┘  └────────────────────┘
-```
----
 ## 🚀 Getting Started
 
 ### Prerequisites
