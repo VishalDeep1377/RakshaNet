@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./public/github-banner.png" alt="RakshaNet Banner" width="100%" style="width: 100%; height: 350px; object-fit: cover; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 10px 40px rgba(0,229,255,0.2);" />
+<img src="./public/rakshanet-banner.png" alt="RakshaNet Banner" width="100%" style="width: 100%; height: 350px; object-fit: cover; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 10px 40px rgba(0,229,255,0.2);" />
 
 <a href="https://rakshanet.vercel.app">
   <img src="https://readme-typing-svg.herokuapp.com?font=Orbitron&weight=900&size=40&pause=1000&color=FF2D6B&center=true&vCenter=true&width=800&height=80&lines=RAKSHANET+SILENTSHIELD;AI-POWERED+WOMEN'S+SAFETY;REAL-TIME+RISK+FUSION;PROTECTION.+NOT+SURVEILLANCE." alt="Typing SVG" />
