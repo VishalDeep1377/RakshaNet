@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./public/github-banner.png" alt="RakshaNet Banner" width="100%" style="border-radius: 12px; margin-bottom: 20px;" />
+<img src="./public/github-banner.png" alt="RakshaNet Banner" width="100%" style="width: 100%; height: 350px; object-fit: cover; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 10px 40px rgba(0,229,255,0.2);" />
 
 <a href="https://rakshanet.vercel.app">
   <img src="https://readme-typing-svg.herokuapp.com?font=Orbitron&weight=900&size=40&pause=1000&color=FF2D6B&center=true&vCenter=true&width=800&height=80&lines=RAKSHANET+SILENTSHIELD;AI-POWERED+WOMEN'S+SAFETY;REAL-TIME+RISK+FUSION;PROTECTION.+NOT+SURVEILLANCE." alt="Typing SVG" />
@@ -163,12 +163,37 @@ sequenceDiagram
 
 ## 🛠 Features Deep-Dive
 
-| 🔥 Component | 🧠 Innovation Detail | 🔒 Privacy / Security |
-| --- | --- | --- |
-| **SilentSOS Audio API** | Analyzes soundwave FFT patterns strictly locally inside the browser. Identifies frequency spikes corresponding to human screams or glass breaking. | **Local Only.** Mic data is processed on-device. Zero audio files are transmitted to servers protecting privacy. |
-| **Motion Jerk Engine** | Hooks into HTML5 `DeviceMotion`. Reads 3D axis acceleration data at 12fps to identify delta spikes >22m/s². | **Battery Efficient.** Automatically disables itself when the device is idle, minimizing background drain. |
-| **Realtime Peer Radar** | Utilizes Supabase `postgres_changes`. Any nearby user opted-in as a "Helper" instantly sees a pulsing pop-up radar alert when you're in distress. | **Encrypted Socket.** Data streams securely over wss:// with strict RLS (Row Level Security). |
-| **Smart Safe-Route** | Fuses Google Maps Directions API with customized Haversine off-route vector tracking. Evaluates path corridors dynamically. | **Anonymous Paths.** Route history clears immediately after session logic concludes. |
+<details open>
+  <summary><b><font size="+1">🎙️ SilentSOS Audio API</font></b></summary>
+  <blockquote>
+    <p><b>🧠 Innovation Detail:</b> Analyzes soundwave FFT patterns strictly locally inside the browser. Identifies frequency spikes corresponding to human screams or glass breaking.</p>
+    <p><b>🔒 Privacy / Security:</b> <em>Local Only.</em> Mic data is processed on-device. Zero audio files are transmitted to servers protecting privacy.</p>
+  </blockquote>
+</details>
+
+<details open>
+  <summary><b><font size="+1">📳 Motion Jerk Engine</font></b></summary>
+  <blockquote>
+    <p><b>🧠 Innovation Detail:</b> Hooks into HTML5 <code>DeviceMotion</code>. Reads 3D axis acceleration data at 12fps to identify sudden delta spikes >22m/s².</p>
+    <p><b>🔒 Privacy / Security:</b> <em>Battery Efficient.</em> Automatically disables itself when the device is idle, minimizing background drain.</p>
+  </blockquote>
+</details>
+
+<details open>
+  <summary><b><font size="+1">📡 Realtime Peer Radar</font></b></summary>
+  <blockquote>
+    <p><b>🧠 Innovation Detail:</b> Utilizes Supabase <code>postgres_changes</code>. Any nearby user opted-in as a "Helper" instantly sees a pulsing pop-up radar alert when you're in distress.</p>
+    <p><b>🔒 Privacy / Security:</b> <em>Encrypted Socket.</em> Data streams securely over wss:// with strict RLS (Row Level Security).</p>
+  </blockquote>
+</details>
+
+<details open>
+  <summary><b><font size="+1">🗺️ Smart Safe-Route</font></b></summary>
+  <blockquote>
+    <p><b>🧠 Innovation Detail:</b> Fuses Google Maps Directions API with customized Haversine off-route vector tracking. Evaluates path corridors dynamically.</p>
+    <p><b>🔒 Privacy / Security:</b> <em>Anonymous Paths.</em> Route history clears immediately after session logic concludes.</p>
+  </blockquote>
+</details>
 
 ---
 
