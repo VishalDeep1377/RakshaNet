@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 export async function DELETE(req: Request) {
   try {
+    const supabase = getSupabaseAdmin();
     const { searchParams } = new URL(req.url);
     const incidentId = searchParams.get("id");
 
@@ -34,6 +37,7 @@ export async function DELETE(req: Request) {
 
 export async function GET(req: Request) {
   try {
+    const supabase = getSupabaseAdmin();
     const { searchParams } = new URL(req.url);
     const incidentId = searchParams.get("id");
 
