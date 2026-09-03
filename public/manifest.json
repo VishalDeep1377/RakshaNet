@@ -1,0 +1,41 @@
+{
+  "name": "RakshaNet SilentShield",
+  "short_name": "RakshaNet",
+  "description": "Privacy-first AI safety network for women. Silent SOS, distress detection, and emergency response.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0000",
+  "theme_color": "#FF0033",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["safety", "utilities", "health"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Emergency SOS",
+      "url": "/dashboard",
+      "description": "Open the safety dashboard"
+    }
+  ]
+}

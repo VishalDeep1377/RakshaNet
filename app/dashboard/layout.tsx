@@ -335,7 +335,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     if (l3ActionStatus !== "sent") return;
     addNotification({
       type: "trusted_alert",
-      title: "Emergency SMS Sent",
+      title: "Emergency WhatsApp Sent",
       message: `Your trusted contact has been alerted with your name and live location.`,
       icon: "📱",
       sms_sent: true,
@@ -351,7 +351,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     addNotification({
       type: "trusted_alert",
       title: "CRITICAL — All Contacts Notified",
-      message: `Emergency SMS sent to all your trusted contacts. PCR Unit dispatched. Ref: ${pcrReference ?? "—"}`,
+      message: `Emergency WhatsApp sent to all your trusted contacts. PCR Unit dispatched. Ref: ${pcrReference ?? "—"}`,
       icon: "🆘",
       sms_sent: true,
       contact_name: "All Trusted Contacts",

@@ -1,4 +1,5 @@
 "use client";
+// Force Turbopack rebuild to clear hydration cache
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -393,7 +394,17 @@ export default function DashboardHome() {
                 {loading ? (
                   <Skeleton w={56} h={56} r={16} />
                 ) : profile?.avatarUrl ? (
-                  <img src={profile.avatarUrl} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img
+                    src={profile.avatarUrl}
+                    alt="Avatar"
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    onError={(e) => {
+                      // If Google image still fails, hide it so initials show instead
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
                 ) : (
                   <span style={{
                     fontSize: 18, fontWeight: 800, color: "#00E5FF",

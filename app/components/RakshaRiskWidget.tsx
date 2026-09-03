@@ -87,14 +87,14 @@ function L3Banner({
               Trusted Contact Alerted
             </div>
             <p style={{ fontSize: 10.5, color: "rgba(240,244,255,0.55)", margin: "0 0 8px", lineHeight: 1.5 }}>
-              Emergency SMS sent to{" "}
+              Emergency WhatsApp message sent to{" "}
               <strong style={{ color: "rgba(240,244,255,0.85)" }}>{contactName}</strong>{" "}
               with your name and live location.
             </p>
-            {/* SMS delivered badge */}
+            {/* WhatsApp delivered badge */}
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <CheckCircle style={{ width: 10, height: 10, color: "#00D084" }} />
-              <span style={{ fontSize: 10, fontWeight: 700, color: "#00D084" }}>SMS Delivered</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: "#00D084" }}>WhatsApp Sent</span>
               <span style={{ fontSize: 9, color: "rgba(240,244,255,0.2)", marginLeft: 4 }}>just now</span>
             </div>
           </div>
@@ -144,7 +144,7 @@ function L4Banner({
               Critical Escalation Active
             </div>
             <p style={{ fontSize: 10.5, color: "rgba(240,244,255,0.55)", margin: "0 0 8px", lineHeight: 1.5 }}>
-              SMS sent to <strong style={{ color: "rgba(240,244,255,0.85)" }}>all trusted contacts</strong>.
+              WhatsApp sent to <strong style={{ color: "rgba(240,244,255,0.85)" }}>all trusted contacts</strong>.
               PCR Unit dispatched.
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -166,8 +166,8 @@ function L4Banner({
 export default function RakshaRiskWidget() {
   const {
     rakshaResult, audioScore, motionScore, routeRiskScore, timeContextScore,
-    audioDb, accelMagnitude, audioPermission,
-    startAudioMonitor, stopAudioMonitor,
+    audioDb, accelMagnitude, audioPermission, motionPermission,
+    startAudioMonitor, stopAudioMonitor, startMotionMonitor, stopMotionMonitor,
     simulateAudioAnomaly, simulateMotionAnomaly,
     l3ActionStatus, l4ActionStatus,
     trustedContactName,
@@ -189,6 +189,7 @@ export default function RakshaRiskWidget() {
   const levelN = meta.levelNumber;
 
   const isAudioOn = audioPermission === "granted";
+  const isMotionOn = motionPermission === "granted";
 
   // Pulsing for elevated states
   const shouldPulse = levelN >= 2;
@@ -377,45 +378,65 @@ export default function RakshaRiskWidget() {
                   {/* Motion visualizer */}
                   <div style={{
                     padding: "8px 10px", borderRadius: 10,
-                    background: motionScore > 0 ? "rgba(180,127,255,0.06)" : "rgba(255,255,255,0.02)",
-                    border: `1px solid ${motionScore > 0 ? "rgba(180,127,255,0.2)" : "rgba(255,255,255,0.05)"}`,
+                    background: isMotionOn ? (motionScore > 0 ? "rgba(180,127,255,0.06)" : "rgba(180,127,255,0.03)") : "rgba(255,255,255,0.02)",
+                    border: `1px solid ${isMotionOn ? (motionScore > 0 ? "rgba(180,127,255,0.2)" : "rgba(180,127,255,0.1)") : "rgba(255,255,255,0.05)"}`,
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 5 }}>
-                      <Activity style={{ width: 10, height: 10, color: motionScore > 0 ? "#B47FFF" : "rgba(240,244,255,0.2)" }} />
-                      <span style={{ fontSize: 9, color: "rgba(240,244,255,0.3)" }}>Motion</span>
+                      <Activity style={{ width: 10, height: 10, color: isMotionOn ? (motionScore > 0 ? "#B47FFF" : "#B47FFF80") : "rgba(240,244,255,0.2)" }} />
+                      <span style={{ fontSize: 9, color: "rgba(240,244,255,0.3)" }}>
+                        {isMotionOn ? "Motion active" : "Motion off"}
+                      </span>
                     </div>
                     <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
                       <motion.div
-                        animate={{ width: `${accelMagnitude}%` }}
+                        animate={{ width: isMotionOn ? `${accelMagnitude}%` : '0%' }}
                         style={{ height: "100%", background: "#B47FFF", borderRadius: 2 }}
                       />
                     </div>
                     <div style={{ fontSize: 9, color: motionScore > 0 ? "#B47FFF" : "rgba(240,244,255,0.2)", marginTop: 4 }}>
-                      {motionScore > 0 ? "⚡ Anomaly detected" : "Normal"}
+                      {motionScore > 0 ? "⚡ Anomaly detected" : (isMotionOn ? "Normal" : "Inactive")}
                     </div>
                   </div>
                 </div>
 
                 {/* Controls */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {/* Audio toggle */}
-                  <button
-                    id="raksha-audio-toggle"
-                    onClick={() => isAudioOn ? stopAudioMonitor() : startAudioMonitor()}
-                    style={{
-                      width: "100%", padding: "8px 0", borderRadius: 10,
-                      fontSize: 11, fontWeight: 700, cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                      background: isAudioOn ? "rgba(255,140,66,0.12)" : "rgba(255,255,255,0.04)",
-                      border: `1px solid ${isAudioOn ? "rgba(255,140,66,0.3)" : "rgba(255,255,255,0.08)"}`,
-                      color: isAudioOn ? "#FF8C42" : "rgba(240,244,255,0.4)",
-                    }}
-                  >
-                    {isAudioOn
-                      ? <><MicOff style={{ width: 11, height: 11 }} /> Stop Audio Monitor</>
-                      : <><Mic style={{ width: 11, height: 11 }} /> Start Audio Monitor</>
-                    }
-                  </button>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                    {/* Audio toggle */}
+                    <button
+                      id="raksha-audio-toggle"
+                      onClick={() => isAudioOn ? stopAudioMonitor() : startAudioMonitor()}
+                      style={{
+                        padding: "8px 0", borderRadius: 10,
+                        fontSize: 10, fontWeight: 700, cursor: "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                        background: isAudioOn ? "rgba(255,140,66,0.12)" : "rgba(255,255,255,0.04)",
+                        border: `1px solid ${isAudioOn ? "rgba(255,140,66,0.3)" : "rgba(255,255,255,0.08)"}`,
+                        color: isAudioOn ? "#FF8C42" : "rgba(240,244,255,0.4)",
+                      }}
+                    >
+                      {isAudioOn
+                        ? <><MicOff style={{ width: 11, height: 11 }} /> Stop Audio</>
+                        : <><Mic style={{ width: 11, height: 11 }} /> Start Audio</>
+                      }
+                    </button>
+                    {/* Motion toggle */}
+                    <button
+                      id="raksha-motion-toggle"
+                      onClick={() => isMotionOn ? stopMotionMonitor() : startMotionMonitor()}
+                      style={{
+                        padding: "8px 0", borderRadius: 10,
+                        fontSize: 10, fontWeight: 700, cursor: "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                        background: isMotionOn ? "rgba(180,127,255,0.12)" : "rgba(255,255,255,0.04)",
+                        border: `1px solid ${isMotionOn ? "rgba(180,127,255,0.3)" : "rgba(255,255,255,0.08)"}`,
+                        color: isMotionOn ? "#B47FFF" : "rgba(240,244,255,0.4)",
+                      }}
+                    >
+                      <Activity style={{ width: 11, height: 11 }} />
+                      {isMotionOn ? "Stop Motion" : "Start Motion"}
+                    </button>
+                  </div>
 
                   {/* Test buttons (dev/demo) */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>

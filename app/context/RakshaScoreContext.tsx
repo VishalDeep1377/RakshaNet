@@ -54,6 +54,8 @@ export interface RakshaScoreContextValue {
   // Sensor control
   startAudioMonitor: () => void;
   stopAudioMonitor: () => void;
+  startMotionMonitor: () => void;
+  stopMotionMonitor: () => void;
   simulateAudioAnomaly: () => void;
   simulateMotionAnomaly: () => void;
 
@@ -83,6 +85,8 @@ const RakshaScoreContext = createContext<RakshaScoreContextValue>({
   audioPermission: "idle", motionPermission: "idle",
   startAudioMonitor: () => {},
   stopAudioMonitor: () => {},
+  startMotionMonitor: () => {},
+  stopMotionMonitor: () => {},
   simulateAudioAnomaly: () => {},
   simulateMotionAnomaly: () => {},
   showCheckIn: false,
@@ -137,23 +141,6 @@ export function RakshaScoreProvider({ children }: { children: ReactNode }) {
   // ── Analyzers ─────────────────────────────────────────────────
   const audioAnalyzerRef  = useRef<AudioAnomalyAnalyzer | null>(null);
   const motionAnalyzerRef = useRef<MotionAnomalyAnalyzer | null>(null);
-
-  // ── Init motion analyzer on mount ────────────────────────────
-  useEffect(() => {
-    const motionAnalyzer = new MotionAnomalyAnalyzer({
-      onAnomalyDetected: () => setMotionScore(20),
-      onAnomalyCleared:  () => setMotionScore(0),
-      onPermissionChange: (s) => setMotionPermission(s),
-      onAccelerationUpdate: (mag) => setAccelMag(mag),
-    });
-    motionAnalyzerRef.current = motionAnalyzer;
-    motionAnalyzer.start().catch(() => {});
-
-    return () => {
-      motionAnalyzer.stop();
-      motionAnalyzerRef.current = null;
-    };
-  }, []);
 
   // ── Level 3 action: auto-SOS + trusted contact notification ──
   const fireLevel3Action = useCallback(async () => {
@@ -392,6 +379,26 @@ export function RakshaScoreProvider({ children }: { children: ReactNode }) {
     setAudioPermission("idle");
   }, []);
 
+  const startMotionMonitor = useCallback(() => {
+    if (motionAnalyzerRef.current?.isRunning) return;
+    const analyzer = new MotionAnomalyAnalyzer({
+      onAnomalyDetected: () => setMotionScore(20),
+      onAnomalyCleared:  () => setMotionScore(0),
+      onPermissionChange: (s) => setMotionPermission(s),
+      onAccelerationUpdate: (mag) => setAccelMag(mag),
+    });
+    motionAnalyzerRef.current = analyzer;
+    analyzer.start().catch(() => {});
+  }, []);
+
+  const stopMotionMonitor = useCallback(() => {
+    motionAnalyzerRef.current?.stop();
+    motionAnalyzerRef.current = null;
+    setMotionScore(0);
+    setAccelMag(0);
+    setMotionPermission("idle");
+  }, []);
+
   const simulateAudioAnomaly = useCallback(() => {
     setAudioScore(35);
     setTimeout(() => setAudioScore(0), 12_000);
@@ -446,6 +453,8 @@ export function RakshaScoreProvider({ children }: { children: ReactNode }) {
         motionPermission,
         startAudioMonitor,
         stopAudioMonitor,
+        startMotionMonitor,
+        stopMotionMonitor,
         simulateAudioAnomaly,
         simulateMotionAnomaly,
         showCheckIn,

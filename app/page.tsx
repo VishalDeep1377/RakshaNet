@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import {
   Phone,
@@ -19,6 +19,7 @@ import {
   Handshake,
   ChevronRight,
   Sparkles,
+  Download,
 } from "lucide-react";
 import ChatWidget from "./components/ChatWidget";
 
@@ -185,6 +186,294 @@ function Nav() {
 }
 
 /* ═══════════════════════════════════════════════
+   PWA INSTALL BUTTON
+   Always visible. Triggers native prompt if
+   the browser fired beforeinstallprompt, or
+   shows platform-specific instructions.
+═══════════════════════════════════════════════ */
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+type InstallModalType = "none" | "ios" | "chrome" | "edge" | "other";
+
+function HeroInstallButton() {
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [modal, setModal] = useState<InstallModalType>("none");
+  const [isMounted, setIsMounted] = useState(false);
+  // hasPrompt tracks whether a native install prompt is available (for UI hint)
+  const [hasPrompt, setHasPrompt] = useState(false);
+  const promptRef = useRef<BeforeInstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+
+    // Already running as installed standalone PWA — hide button
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      setIsInstalled(true);
+      return;
+    }
+
+    // Check if the global capture script already saved a prompt
+    const win = window as unknown as { __pwaPrompt?: BeforeInstallPromptEvent | null };
+    if (win.__pwaPrompt) {
+      promptRef.current = win.__pwaPrompt;
+      setHasPrompt(true);
+    }
+
+    // Also listen for future fires (in case the event hasn't fired yet)
+    const onPromptReady = () => {
+      if (win.__pwaPrompt) {
+        promptRef.current = win.__pwaPrompt;
+        setHasPrompt(true);
+      }
+    };
+    window.addEventListener("pwa-prompt-ready", onPromptReady);
+
+    // Fallback: also listen directly (in case our global script missed it)
+    const onDirectPrompt = (e: Event) => {
+      e.preventDefault();
+      promptRef.current = e as BeforeInstallPromptEvent;
+      setHasPrompt(true);
+    };
+    window.addEventListener("beforeinstallprompt", onDirectPrompt);
+
+    return () => {
+      window.removeEventListener("pwa-prompt-ready", onPromptReady);
+      window.removeEventListener("beforeinstallprompt", onDirectPrompt);
+    };
+  }, []);
+
+  const detectPlatform = useCallback((): InstallModalType => {
+    const ua = navigator.userAgent;
+    if (/iPad|iPhone|iPod/.test(ua)) return "ios";
+    if (/Edg\//.test(ua)) return "edge";
+    if (/Chrome\//.test(ua)) return "chrome";
+    return "other";
+  }, []);
+
+  const handleClick = useCallback(async () => {
+    // Native prompt available — trigger it directly, no modal needed
+    if (promptRef.current) {
+      try {
+        await promptRef.current.prompt();
+        const { outcome } = await promptRef.current.userChoice;
+        if (outcome === "accepted") setIsInstalled(true);
+      } catch {
+        // Prompt was already used or dismissed — show fallback
+        setModal(detectPlatform());
+      }
+      promptRef.current = null;
+      setHasPrompt(false);
+      // Clear global reference too
+      const win = window as unknown as { __pwaPrompt?: null };
+      win.__pwaPrompt = null;
+      return;
+    }
+    // No native prompt — show platform-specific instructions
+    setModal(detectPlatform());
+  }, [detectPlatform]);
+
+  // Skip server render
+  if (!isMounted || isInstalled) return null;
+
+  return (
+    <>
+      {/* ── Download App button ── */}
+      <button
+        id="pwa-install-hero-btn"
+        onClick={handleClick}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "14px 30px",
+          borderRadius: 100,
+          background: "linear-gradient(135deg, rgba(255,0,51,0.18) 0%, rgba(180,0,40,0.1) 100%)",
+          border: "1px solid rgba(255,0,51,0.45)",
+          color: "white",
+          fontFamily: "'Outfit', sans-serif",
+          fontWeight: 700,
+          fontSize: 15,
+          cursor: "pointer",
+          transition: "all 0.25s",
+          backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)",
+          letterSpacing: "0.02em",
+        }}
+        onMouseEnter={(e) => {
+          Object.assign(e.currentTarget.style, {
+            background: "linear-gradient(135deg, rgba(255,0,51,0.32), rgba(180,0,40,0.22))",
+            borderColor: "rgba(255,0,51,0.8)",
+            transform: "translateY(-2px)",
+            boxShadow: "0 10px 36px rgba(255,0,51,0.35)",
+          });
+        }}
+        onMouseLeave={(e) => {
+          Object.assign(e.currentTarget.style, {
+            background: "linear-gradient(135deg, rgba(255,0,51,0.18) 0%, rgba(180,0,40,0.1) 100%)",
+            borderColor: "rgba(255,0,51,0.45)",
+            transform: "translateY(0)",
+            boxShadow: "none",
+          });
+        }}
+      >
+        <Download size={17} color="#FF4D6D" />
+        Download App
+      </button>
+
+      {/* ── Install instructions modal ── */}
+      {modal !== "none" && (
+        <div
+          onClick={() => setModal("none")}
+          style={{
+            position: "fixed", inset: 0, zIndex: 20000,
+            background: "rgba(0,0,0,0.82)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "24px 16px",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "linear-gradient(160deg, rgba(16,0,6,0.99), rgba(36,0,12,0.99))",
+              border: "1px solid rgba(255,0,51,0.2)",
+              borderRadius: 28, padding: "36px 28px",
+              maxWidth: 400, width: "100%", textAlign: "center",
+              boxShadow: "0 40px 100px rgba(255,0,51,0.2)",
+            }}
+          >
+            {/* App icon row */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginBottom: 24 }}>
+              <div style={{
+                width: 60, height: 60, borderRadius: 16,
+                background: "linear-gradient(135deg, #FF0033, #8B0015)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 6px 24px rgba(255,0,51,0.45)",
+              }}>
+                <Download size={26} color="white" />
+              </div>
+              <div style={{ textAlign: "left" }}>
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: "white" }}>
+                  RakshaNet
+                </div>
+                <div style={{ fontSize: 12, color: "rgba(255,180,190,0.6)", marginTop: 2 }}>
+                  Free · Safety App
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              width: "100%", height: 1,
+              background: "rgba(255,0,51,0.12)",
+              marginBottom: 24,
+            }} />
+
+            {/* Steps */}
+            {modal === "ios" && (
+              <div style={{ textAlign: "left" }}>
+                {[
+                  { step: "1", icon: "📱", text: "Open this page in Safari on your iPhone or iPad" },
+                  { step: "2", icon: "⎋", text: "Tap the Share button at the bottom of Safari" },
+                  { step: "3", icon: "🏠", text: "Scroll down and tap \"Add to Home Screen\"" },
+                  { step: "4", icon: "✅", text: "Tap \"Add\" — RakshaNet is now on your home screen!" },
+                ].map((s) => (
+                  <div key={s.step} style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 16 }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+                      background: "rgba(255,0,51,0.15)", border: "1px solid rgba(255,0,51,0.3)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, color: "#FF4D6D",
+                    }}>
+                      {s.step}
+                    </div>
+                    <p style={{ margin: 0, fontSize: 14, color: "rgba(255,220,225,0.8)", lineHeight: 1.55 }}>
+                      <span style={{ marginRight: 6 }}>{s.icon}</span>{s.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {(modal === "chrome" || modal === "edge") && (
+              <div style={{ textAlign: "left" }}>
+                {[
+                  { step: "1", icon: "🔍", text: `Look at the address bar — you'll see an Install icon (⊕) on the right side` },
+                  { step: "2", icon: "🖱️", text: "Click that icon and confirm the install prompt" },
+                  { step: "3", icon: "🖥️", text: "RakshaNet will be installed as a desktop app immediately!" },
+                ].map((s) => (
+                  <div key={s.step} style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 16 }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+                      background: "rgba(255,0,51,0.15)", border: "1px solid rgba(255,0,51,0.3)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, color: "#FF4D6D",
+                    }}>
+                      {s.step}
+                    </div>
+                    <p style={{ margin: 0, fontSize: 14, color: "rgba(255,220,225,0.8)", lineHeight: 1.55 }}>
+                      <span style={{ marginRight: 6 }}>{s.icon}</span>{s.text}
+                    </p>
+                  </div>
+                ))}
+                <div style={{
+                  background: "rgba(255,0,51,0.08)", border: "1px solid rgba(255,0,51,0.18)",
+                  borderRadius: 12, padding: "10px 14px", marginTop: 4,
+                  fontSize: 12.5, color: "rgba(255,200,210,0.65)", lineHeight: 1.5,
+                }}>
+                  No install icon visible? Try opening this page in {modal === "edge" ? "Edge" : "Chrome"} directly.
+                </div>
+              </div>
+            )}
+
+            {modal === "other" && (
+              <div style={{ textAlign: "left" }}>
+                {[
+                  { step: "1", icon: "🌐", text: "Open this page in Chrome or Microsoft Edge" },
+                  { step: "2", icon: "⊕", text: "Look for the Install icon in the browser address bar" },
+                  { step: "3", icon: "✅", text: "Click it to install RakshaNet as an app instantly" },
+                ].map((s) => (
+                  <div key={s.step} style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 16 }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+                      background: "rgba(255,0,51,0.15)", border: "1px solid rgba(255,0,51,0.3)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, color: "#FF4D6D",
+                    }}>
+                      {s.step}
+                    </div>
+                    <p style={{ margin: 0, fontSize: 14, color: "rgba(255,220,225,0.8)", lineHeight: 1.55 }}>
+                      <span style={{ marginRight: 6 }}>{s.icon}</span>{s.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              onClick={() => setModal("none")}
+              style={{
+                background: "linear-gradient(135deg, #FF0033, #CC0022)",
+                border: "none", borderRadius: 14, marginTop: 20,
+                padding: "14px 0", color: "white", fontSize: 15,
+                fontWeight: 700, fontFamily: "'Outfit', sans-serif",
+                cursor: "pointer", width: "100%",
+                boxShadow: "0 4px 20px rgba(255,0,51,0.4)",
+              }}
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════
    HERO — crossfade 4 images + looping background video
 ═══════════════════════════════════════════════ */
 function Hero() {
@@ -299,10 +588,12 @@ function Hero() {
           keeping support always within reach.
         </p>
 
-        <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
           <Link href="/auth/login" className="btn-primary-pill">
             Join the Movement
           </Link>
+          {/* PWA Install Button — always visible on client */}
+          <HeroInstallButton />
           <a href="#our-impact" className="btn-ghost-pill">
             See Our Impact
           </a>
@@ -603,7 +894,6 @@ function SmokeCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    // We only want this on desktop ideally, or just listen to mousemove.
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -625,9 +915,9 @@ function SmokeCursor() {
     const particles: { x: number; y: number; size: number; maxLife: number; life: number; vx: number; vy: number; color: string }[] = [];
 
     const colors = [
-      "rgba(255, 0, 51, 0.18)",   // Brand Red
-      "rgba(200, 20, 50, 0.12)",  // Deep Crimson
-      "rgba(80, 80, 80, 0.1)"     // Ash
+      "rgba(255, 0, 51, 0.18)",
+      "rgba(200, 20, 50, 0.12)",
+      "rgba(80, 80, 80, 0.1)",
     ];
 
     let mouseX = width / 2;
@@ -636,9 +926,9 @@ function SmokeCursor() {
     const handleMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
-      
+
       const spawnCount = Math.random() > 0.4 ? 2 : 1;
-      for(let i = 0; i < spawnCount; i++) {
+      for (let i = 0; i < spawnCount; i++) {
         particles.push({
           x: mouseX + (Math.random() - 0.5) * 30,
           y: mouseY + (Math.random() - 0.5) * 30,
@@ -647,7 +937,7 @@ function SmokeCursor() {
           life: 0,
           vx: (Math.random() - 0.5) * 0.8,
           vy: Math.random() * -1.5 - 0.5,
-          color: colors[Math.floor(Math.random() * colors.length)]
+          color: colors[Math.floor(Math.random() * colors.length)],
         });
       }
     };
@@ -673,12 +963,12 @@ function SmokeCursor() {
           continue;
         }
 
-        const alpha = 1 - Math.pow(progress, 2); 
-        
+        const alpha = 1 - Math.pow(progress, 2);
+
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.globalCompositeOperation = "screen";
-        
+
         const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
         gradient.addColorStop(0, p.color);
         gradient.addColorStop(1, "rgba(0,0,0,0)");

@@ -173,11 +173,11 @@ graph TD
 The core of the application is a fully deterministic, rule-based additive logic engine that scores physical risk vectors continuously (every 2 seconds).
 
 ```mermaid
-pie title "Risk Factory Weight Allocations (Max 87 points)"
-    "Audio Anomaly (Scream/Crash)" : 35
-    "Sudden Motion (Struggle/Fall)" : 20
-    "Route/Location Risk" : 18
-    "Time of Day Vulnerability" : 14
+pie title Risk Factory Weight Allocations (Max 87 points)
+    "Audio Anomaly" : 35
+    "Sudden Motion" : 20
+    "Route Risk" : 18
+    "Time of Day" : 14
 ```
 
 ### Flow of Execution

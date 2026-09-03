@@ -92,7 +92,14 @@ export default function ProfileDropdown({ userName, userAvatar, userEmail, onLog
         }}
       >
         {userAvatar ? (
-          <img src={userAvatar} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img
+            src={userAvatar}
+            alt="avatar"
+            referrerPolicy="no-referrer"
+            crossOrigin="anonymous"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          />
         ) : initials ? (
           <span style={{ fontSize: 13, fontWeight: 800, color: "#00E5FF", letterSpacing: "-0.02em", fontFamily: "inherit" }}>
             {initials}
@@ -135,7 +142,14 @@ export default function ProfileDropdown({ userName, userAvatar, userEmail, onLog
                   border: "1px solid rgba(0,229,255,0.22)", overflow: "hidden",
                 }}>
                   {userAvatar ? (
-                    <img src={userAvatar} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img
+                      src={userAvatar}
+                      alt="avatar"
+                      referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                    />
                   ) : initials ? (
                     <span style={{ fontSize: 15, fontWeight: 800, color: "#00E5FF", letterSpacing: "-0.02em" }}>{initials}</span>
                   ) : (

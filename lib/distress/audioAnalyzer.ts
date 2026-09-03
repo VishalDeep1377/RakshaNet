@@ -7,6 +7,8 @@
 
 export type AudioPermissionState = "idle" | "requesting" | "granted" | "denied" | "unavailable";
 
+export const DISTRESS_KEYWORDS = ["help", "stop", "police", "emergency", "leave me", "bachao"];
+
 export interface AudioAnalyzerState {
   permission: AudioPermissionState;
   isAnalyzing: boolean;
@@ -24,10 +26,10 @@ export interface AudioAnalyzerCallbacks {
 }
 
 // ── Thresholds ─────────────────────────────────────────────────
-const ANOMALY_THRESHOLD_RMS = 0.18;   // RMS amplitude (0–1) to flag as anomaly
+const FFT_ANOMALY_THRESHOLD = 60;     // Average FFT frequency amplitude (0-255)
 const ANOMALY_SUSTAIN_MS    = 1200;   // Must be above threshold for 1.2s to confirm
 const ANOMALY_RESET_MS      = 8_000;  // Auto-reset after 8s of quiet
-const FFT_SIZE              = 256;
+const FFT_SIZE              = 512;
 const SAMPLE_INTERVAL_MS    = 150;    // How often we sample audio
 
 export class AudioAnomalyAnalyzer {
@@ -40,6 +42,8 @@ export class AudioAnomalyAnalyzer {
   private lastAnomalyAt: number | null = null;
   private callbacks: AudioAnalyzerCallbacks;
   private _anomalyActive = false;
+  // @ts-ignore - Web Speech API typing
+  private recognition: any = null;
 
   constructor(callbacks: AudioAnalyzerCallbacks) {
     this.callbacks = callbacks;
@@ -77,29 +81,80 @@ export class AudioAnomalyAnalyzer {
     this.sourceNode = this.audioCtx.createMediaStreamSource(this.stream);
     this.sourceNode.connect(this.analyserNode);
 
-    // Start polling
+    if (this.audioCtx.state === "suspended") {
+      await this.audioCtx.resume();
+    }
+
+    // Start FFT polling
     this.intervalId = setInterval(() => this._tick(), SAMPLE_INTERVAL_MS);
+
+    // Start Speech Recognition for keyword detection
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      this.recognition = new SpeechRecognition();
+      this.recognition.continuous = true;
+      this.recognition.interimResults = true;
+      
+      this.recognition.onresult = (event: any) => {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        transcript = transcript.toLowerCase();
+        
+        const hasDistressWord = DISTRESS_KEYWORDS.some((word) => transcript.includes(word));
+        if (hasDistressWord) {
+          const now = Date.now();
+          if (!this._anomalyActive) {
+            this._anomalyActive = true;
+            this.lastAnomalyAt = now;
+            this.callbacks.onAnomalyDetected(35);
+          } else {
+            // Keep it active
+            this.lastAnomalyAt = now;
+          }
+        }
+      };
+
+      this.recognition.onend = () => {
+        // Auto-restart if we are still actively monitoring
+        if (this.intervalId !== null && this.recognition) {
+          try { this.recognition.start(); } catch (e) { /* ignore */ }
+        }
+      };
+
+      try {
+        this.recognition.start();
+      } catch (e) {
+        console.warn("Speech recognition failed to start:", e);
+      }
+    }
   }
 
   // ── Sample loop ───────────────────────────────────────────────
   private _tick(): void {
     if (!this.analyserNode) return;
 
-    const buf = new Float32Array(this.analyserNode.fftSize);
-    this.analyserNode.getFloatTimeDomainData(buf);
+    const bufferLength = this.analyserNode.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    // FFT Frequency Analysis
+    this.analyserNode.getByteFrequencyData(dataArray);
 
-    // Compute RMS (root mean square) amplitude
-    let sumSq = 0;
-    for (const v of buf) sumSq += v * v;
-    const rms = Math.sqrt(sumSq / buf.length);
+    // Compute average frequency amplitude across the spectrum
+    let sum = 0;
+    for (let i = 0; i < bufferLength; i++) {
+       sum += dataArray[i];
+    }
+    const averageFreq = sum / bufferLength;
 
-    // Map RMS 0–0.5 → dB 0–100 for display
-    const displayDb = Math.min(100, Math.round((rms / 0.5) * 100));
+    // Map Frequency 0–255 → dB 0–100 for display, make it sensitive
+    const displayDb = Math.min(100, Math.round((averageFreq / 100) * 100));
     this.callbacks.onLevelUpdate(displayDb);
 
     const now = Date.now();
 
-    if (rms >= ANOMALY_THRESHOLD_RMS) {
+    // Check if average frequency amplitude exceeds anomaly threshold
+    if (averageFreq >= FFT_ANOMALY_THRESHOLD) {
       if (!this.aboveThresholdSince) {
         this.aboveThresholdSince = now;
       }
@@ -149,6 +204,11 @@ export class AudioAnomalyAnalyzer {
     this.stream = null;
     this._anomalyActive = false;
     this.aboveThresholdSince = null;
+    
+    if (this.recognition) {
+      try { this.recognition.stop(); } catch (e) {}
+      this.recognition = null;
+    }
   }
 
   get isRunning(): boolean {

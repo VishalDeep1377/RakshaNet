@@ -102,8 +102,9 @@ export default function CheckInModal({
                   stroke="#FF8C42"
                   strokeWidth="3"
                   strokeLinecap="round"
-                  strokeDasharray={`${2 * Math.PI * 44}`}
-                  animate={{ strokeDashoffset: `${2 * Math.PI * 44 * (1 - progress)}` }}
+                  strokeDasharray={2 * Math.PI * 44}
+                  initial={{ strokeDashoffset: 2 * Math.PI * 44 }}
+                  animate={{ strokeDashoffset: 2 * Math.PI * 44 * (1 - progress) }}
                   transition={{ duration: 0.9 }}
                 />
               </svg>

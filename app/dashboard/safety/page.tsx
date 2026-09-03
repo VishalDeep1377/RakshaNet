@@ -1,4 +1,5 @@
 "use client";
+// Force turbopack re-compile for staleness
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
@@ -94,8 +95,9 @@ function CancelWindow({ duration, onCancel, onConfirm }: { duration: number; onC
           <svg style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }} viewBox="0 0 96 96" fill="none">
             <circle cx="48" cy="48" r="44" stroke="rgba(255,45,85,0.15)" strokeWidth="2" />
             <motion.circle cx="48" cy="48" r="44" stroke={C.red} strokeWidth="2"
-              strokeDasharray={`${2 * Math.PI * 44}`}
-              strokeDashoffset={`${2 * Math.PI * 44 * (remaining / duration)}`}
+              strokeDasharray={2 * Math.PI * 44}
+              initial={{ strokeDashoffset: 2 * Math.PI * 44 }}
+              animate={{ strokeDashoffset: 2 * Math.PI * 44 * (remaining / duration) }}
               strokeLinecap="round" transition={{ duration: 0.9 }} />
           </svg>
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, fontWeight: 900, color: C.red, fontFamily: "monospace" }}>{remaining}</div>
