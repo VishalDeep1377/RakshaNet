@@ -1,9 +1,14 @@
 // =============================================================
 // RAKSHANET — Distress Score Engine
 // Pure calculation module — no side effects, fully deterministic
+//
+// ML Blend (v2): A trained Logistic Regression model (trained on
+// 2001 controlled simulations) contributes 15% to the final score.
+// The 6 rule-based factors retain their 85% weight.
 // =============================================================
 import type { LocationPoint } from "@/lib/location/history";
 import { computePathDeviation, detectSpeedAnomaly, haversineMetres as hMetres } from "@/lib/location/history";
+import { computeMLDistressScore, buildMLFeatures, type MLFeatureInput } from "./mlDistressScorer";
 
 export type DistressLevel = "SAFE" | "AWARE" | "CAUTION" | "DANGER" | "CRITICAL";
 
@@ -60,6 +65,11 @@ export interface DistressInput {
   // User actions
   manualTrigger: boolean; // user pressed SOS / panic
   userReportedUnsafe: boolean; // user told assistant they feel unsafe
+
+  // ── ML Feature Inputs (optional — enables ML blend when provided) ──
+  // These are raw sensor values consumed by the Logistic Regression model.
+  // If not provided the ML contribution defaults to 0 (pure rule-based).
+  mlFeatures?: Partial<MLFeatureInput>;
 }
 
 export interface FactorBreakdown {
@@ -70,6 +80,7 @@ export interface FactorBreakdown {
   checkIn: number;
   manualTrigger: number;
   speedAnomaly: number; // 0 or 100 — suspicious vehicle speed
+  mlScore: number;     // 0–100, ML model distress probability × 100
 }
 
 export interface DistressResult {
@@ -79,6 +90,10 @@ export interface DistressResult {
   locationContext: string; // human-readable "At home", "In safe zone: Market", "Unknown area"
   routeContext: string;    // human-readable route deviation context
   speedKmh: number;       // last known speed in km/h
+  /** ML model probability (0.0–1.0). undefined if mlFeatures not provided. */
+  mlProbability?: number;
+  /** ML label (0 = safe, 1 = distress). undefined if mlFeatures not provided. */
+  mlLabel?: 0 | 1;
 }
 
 // ── Haversine (local alias, delegates to shared util) ────────
@@ -220,16 +235,17 @@ export const LEVEL_META: Record<DistressLevel, { color: string; bg: string; bord
 };
 
 // ── WEIGHTS ──────────────────────────────────────────────────
-// speedAnomaly adds a flat bonus (not weighted) — suspicious speed
-// is a strong signal regardless of other factors.
+// ML blend: 15% ML + 85% rules (existing factors re-normalised).
+// Rule weights sum to 0.85; mlScore fills the remaining 0.15.
 const WEIGHTS = {
-  location:        0.28,
-  timeOfDay:       0.18,
-  routeDeviation:  0.20,
-  incidentHistory: 0.14,
-  checkIn:         0.10,
-  manualTrigger:   0.05,
-  speedAnomaly:    0.05,
+  location:        0.238,  // was 0.28  → ×0.85
+  timeOfDay:       0.153,  // was 0.18  → ×0.85
+  routeDeviation:  0.170,  // was 0.20  → ×0.85
+  incidentHistory: 0.119,  // was 0.14  → ×0.85
+  checkIn:         0.085,  // was 0.10  → ×0.85
+  manualTrigger:   0.043,  // was 0.05  → ×0.85
+  speedAnomaly:    0.043,  // was 0.05  → ×0.85
+  mlScore:         0.150,  // NEW — trained ML model contribution
 };
 
 // ── MAIN EXPORT ──────────────────────────────────────────────
@@ -247,6 +263,54 @@ export function calculateDistressScore(input: DistressInput): DistressResult {
     : { anomaly: false, maxSpeedKmh: 0 };
   const speedScore = speedAnomaly.anomaly ? 100 : 0;
 
+  // ── ML Score (15% contribution) ─────────────────────────────
+  // Runs the trained Logistic Regression model if sensor features
+  // are provided. Falls back to pure rule-based if not.
+  let mlScoreValue = 0;
+  let mlProbability: number | undefined;
+  let mlLabel: 0 | 1 | undefined;
+
+  if (input.mlFeatures) {
+    try {
+      // Build a complete MLFeatureInput, filling in defaults for any
+      // missing real-time sensor values from the rule-based engine context.
+      const minutesSince = input.lastActiveAt
+        ? (Date.now() - input.lastActiveAt.getTime()) / 60_000
+        : 0;
+
+      const fullFeatures = buildMLFeatures({
+        audioRms:               input.mlFeatures.audio_rms               ?? 0,
+        audioPeak:              input.mlFeatures.audio_peak              ?? 0,
+        audioZcr:               input.mlFeatures.audio_zcr               ?? 0,
+        audioSpectralCentroid:  input.mlFeatures.audio_spectral_centroid_hz ?? 1500,
+        audioMfccMean:          input.mlFeatures.audio_mfcc_mean         ?? -15,
+        audioAnomalyDetected:   (input.mlFeatures.audio_anomaly ?? 0) === 1,
+        accelMagnitudeMean:     input.mlFeatures.accel_magnitude_mean    ?? 3,
+        accelStd:               input.mlFeatures.accel_std               ?? 1,
+        accelMax:               input.mlFeatures.accel_max               ?? 8,
+        jerkMean:               input.mlFeatures.jerk_mean               ?? 3,
+        motionAnomalyDetected:  (input.mlFeatures.motion_anomaly ?? 0) === 1,
+        speedKmh:               input.mlFeatures.speed_kmh               ?? 5,
+        routeDeviationM:        input.mlFeatures.route_deviation_m       ?? 0,
+        distanceFromSafeZoneM:  input.mlFeatures.distance_from_safe_zone_m ?? 200,
+        hourOfDay:              input.hourOfDay,
+        minutesSinceCheckin:    minutesSince,
+        incidentHistory:        input.totalIncidents,
+        userTrigger:            input.manualTrigger,
+        userReportedUnsafe:     input.userReportedUnsafe,
+      });
+
+      const mlResult = computeMLDistressScore(fullFeatures);
+      mlProbability = mlResult.probability;
+      mlLabel = mlResult.label;
+      // Map 0–1 probability to 0–100 score
+      mlScoreValue = Math.round(mlResult.probability * 100);
+    } catch {
+      // If ML inference fails for any reason, silently fall back to 0
+      mlScoreValue = 0;
+    }
+  }
+
   const factors: FactorBreakdown = {
     location:        locationResult.score,
     timeOfDay:       timeScore,
@@ -255,6 +319,7 @@ export function calculateDistressScore(input: DistressInput): DistressResult {
     checkIn:         checkInScore,
     manualTrigger:   triggerScore,
     speedAnomaly:    speedScore,
+    mlScore:         mlScoreValue,
   };
 
   const score = Math.min(
@@ -266,7 +331,8 @@ export function calculateDistressScore(input: DistressInput): DistressResult {
       factors.incidentHistory * WEIGHTS.incidentHistory +
       factors.checkIn         * WEIGHTS.checkIn +
       factors.manualTrigger   * WEIGHTS.manualTrigger +
-      factors.speedAnomaly    * WEIGHTS.speedAnomaly
+      factors.speedAnomaly    * WEIGHTS.speedAnomaly +
+      factors.mlScore         * WEIGHTS.mlScore
     )
   );
 
@@ -277,5 +343,7 @@ export function calculateDistressScore(input: DistressInput): DistressResult {
     locationContext: locationResult.context,
     routeContext: routeResult.routeContext,
     speedKmh: speedAnomaly.maxSpeedKmh,
+    mlProbability,
+    mlLabel,
   };
 }
