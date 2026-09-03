@@ -376,6 +376,40 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
+## 🚀 Deploying to Vercel (One-Click Setup)
+
+RakshaNet is fully optimized for Vercel. Since you're using Next.js, deployment is practically zero-configuration.
+
+### Prerequisites for Vercel
+You will need the exact same environment variables from your local `.env.local` ready to copy into Vercel.
+
+### Step-by-Step Deployment
+1. **Push your code to GitHub** (Ensure your latest code, including `mlModel.json`, is pushed to `main`).
+2. **Log into Vercel** and click **"Add New Project"**.
+3. **Import your GitHub repository** (`VishalDeep1377/RakshaNet`).
+4. **Configure Project:**
+   - Framework Preset: **Next.js** (Selected automatically).
+   - Root Directory: Use `./rakshanet` if your Next.js app is inside the `rakshanet` subfolder.
+   - Build Command: `npm run build` (Default)
+   - Install Command: `npm install` (Default)
+5. **Add Environment Variables:**
+   Expand the "Environment Variables" section and paste all the variables from your `.env.local`:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=...
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+   SUPABASE_SERVICE_ROLE_KEY=...
+   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=...
+   VONAGE_API_KEY=...
+   VONAGE_API_SECRET=...
+   OPENAI_API_KEY=...
+   ```
+6. **Deploy!** Click the Deploy button. Vercel will build the app and generate a live secure HTTPS URL.
+
+> **Note on Web APIs in Production:**
+> Features like `getUserMedia` (Microphone for audio anomalies) and `DeviceMotion` (Jerk detection) **require HTTPS** to function in browsers. Vercel provisions HTTPS by default, ensuring all sensor integrations will function beautifully in production.
+
+---
+
 ## 🧬 Tech Stack Deep Dive
 
 | Layer | Technology | Why We Chose It |
